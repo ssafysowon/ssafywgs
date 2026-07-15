@@ -6,10 +6,9 @@ const router = useRouter()
 
 // ── 만든 사람들: 실제 팀원 정보로 바꿔 넣으세요 ───────────────
 const MAKERS = [
-  { name: '팀원 1', role: 'Frontend' },
-  { name: '팀원 2', role: 'Backend' },
-  { name: '팀원 3', role: 'AI / Data' },
-  { name: '팀원 4', role: 'Design' },
+  { name: '소원', role: 'won' },
+  { name: '정슬기', role: 'seul' },
+  { name: '박규은', role: 'gyu' },
 ]
 
 // 코스 만들기 흐름(실제 4문항 + 결과) — 순서가 정보이므로 번호를 붙임
@@ -43,32 +42,19 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
 
 <template>
   <div class="page">
-    <!-- NAV -->
-    <nav>
-      <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
-      <ul class="nav-links">
-        <li><router-link to="/course">코스 만들기</router-link></li>
-        <li><router-link to="/posts">공유 게시판</router-link></li>
-        <li><router-link to="/about" class="here">소개</router-link></li>
-      </ul>
-      <div class="nav-actions">
-        <button class="nbtn primary" @click="router.push({ name: 'course' })">코스 만들기 →</button>
-      </div>
-    </nav>
-
     <main>
       <!-- HERO -->
       <header class="hero">
         <div class="wrap">
           <div class="eyebrow reveal">About · LocalHub</div>
-          <h1 class="reveal">남는 시간을,<br><span class="accent">동네를 걷는 시간</span>으로.</h1>
+          <h1 class="reveal">설마 혹시...<br><span class="accent">진짜로</span>빠지실 거 아니죠?😮</h1>
           <p class="lede reveal">
-            LocalHub는 SSAFY 역삼캠퍼스에서 출발하는 짧은 로컬 코스를 만들어드려요.
-            애매하게 빈 30분부터 반나절까지, 지금 갈 수 있는 곳을 지도 위 코스로 그려드립니다.
+            <b>싸피에서 탈출할 수 있는 유일한 방법은 취업입니다^_^</b>
+            모두 응원합니다😉😉
           </p>
           <div class="hero-cta reveal">
-            <button class="btn-solid" @click="router.push({ name: 'course' })">코스 만들기 <span class="arrow">→</span></button>
-            <button class="btn-ghost" @click="router.push({ name: 'posts' })">공유 게시판 보기</button>
+            <button class="btn-solid" @click="router.push({ name: 'course' })">그럼에도 불구하고 탈출계획세우기 <span class="arrow">→</span></button>
+            <button class="btn-ghost" @click="router.push({ name: 'posts' })">다른 사람들의 탈출계획 구경하기</button>
           </div>
 
           <!-- 지도 경로 모티프를 이어받은 라인 -->
@@ -184,25 +170,11 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
   -webkit-font-smoothing:antialiased;min-height:100vh}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 
-/* NAV */
-nav{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;
-  justify-content:space-between;padding:0 24px;background:#fff;position:sticky;top:0;z-index:50}
+/* footer 로고 (전역 nav 로고와 별개, 이 파일 안에서만 사용) */
 .logo{display:flex;align-items:center;gap:9px;font-family:'Archivo',sans-serif;font-weight:800;
   letter-spacing:-.03em;font-size:18px;text-decoration:none;color:var(--ink)}
 .logo.sm{font-size:16px}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
-.nav-links{display:flex;gap:30px;list-style:none;margin:0 auto 0 26px}
-.nav-links a{color:var(--ink-60);text-decoration:none;font-size:14px;font-weight:500;position:relative;padding:4px 0}
-.nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--ink);transition:width .3s var(--ease)}
-.nav-links a:hover::after,.nav-links a.here::after{width:100%}
-.nav-links a.here{color:var(--ink)}
-.nav-actions{display:flex;gap:9px}
-.nbtn{height:38px;padding:0 16px;border-radius:10px;border:1px solid var(--line-strong);background:#fff;
-  font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;
-  display:inline-flex;align-items:center;gap:6px;transition:all .2s var(--ease)}
-.nbtn:hover{border-color:var(--ink)}
-.nbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
-.nbtn.primary:hover{background:var(--route);border-color:var(--route)}
 
 /* shared buttons */
 .btn-solid{height:50px;padding:0 24px;border:0;border-radius:14px;cursor:pointer;background:var(--ink);
@@ -224,7 +196,7 @@ h2{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.2}
 .accent{color:var(--route)}
 
 /* HERO */
-.hero{padding:78px 0 8px;border-bottom:1px solid var(--line);background:#fff}
+.hero{padding:56px 0 8px;border-bottom:1px solid var(--line);background:#fff}
 .hero .eyebrow{margin-bottom:16px}
 .hero h1{font-size:clamp(34px,6vw,58px);font-weight:800;letter-spacing:-.04em;line-height:1.06}
 .hero .lede{max-width:600px;margin-top:20px;font-size:16.5px;line-height:1.7;color:var(--ink-60)}

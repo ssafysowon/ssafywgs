@@ -277,27 +277,37 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 
 <template>
   <div class="page">
-    <nav>
-      <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
-      <ul class="nav-links">
-        <li><router-link to="/course">코스 만들기</router-link></li>
-        <li><router-link to="/posts">공유 게시판</router-link></li>
-        <li><router-link to="/about">소개</router-link></li>
-      </ul>
-        <div class="nav-tags">
-        <span class="tag"><span class="k">Time</span><span class="v">{{ answers.time }}</span></span>
-        <span class="tag"><span class="k">Area</span><span class="v">{{ answers.field }}</span></span>
-        <span class="tag"><span class="k">With</span><span class="v">{{ answers.companion }}</span></span>
-        <span class="tag"><span class="k">Mood</span><span class="v">{{ answers.concept }}</span></span>
+    <div class="site-header">
+      <nav>
+        <div class="wrap nav-in">
+          <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
+          <ul class="nav-links">
+            <li><router-link :to="{ name: 'course' }" class="here">코스 만들기</router-link></li>
+            <li><router-link to="/posts">공유 게시판</router-link></li>
+            <li><router-link to="/about">소개</router-link></li>
+          </ul>
+          <span class="nav-spacer" aria-hidden="true"></span>
+        </div>
+      </nav>
+
+      <div class="course-bar">
+        <div class="wrap course-bar-in">
+          <div class="nav-tags">
+            <span class="tag"><span class="k">Time</span><span class="v">{{ answers.time }}</span></span>
+            <span class="tag"><span class="k">Area</span><span class="v">{{ answers.field }}</span></span>
+            <span class="tag"><span class="k">With</span><span class="v">{{ answers.companion }}</span></span>
+            <span class="tag"><span class="k">Mood</span><span class="v">{{ answers.concept }}</span></span>
+          </div>
+          <div class="nav-actions">
+            <button class="nbtn" @click="router.push({ name: 'course' })">↺ 다시 만들기</button>
+            <button
+              class="nbtn primary"
+              @click="goShareToPosts"
+            >게시판에 공유 →</button>
+          </div>
+        </div>
       </div>
-        <div class="nav-actions">
-        <button class="nbtn" @click="router.push({ name: 'course' })">↺ 다시 만들기</button>
-        <button
-          class="nbtn primary"
-          @click="goShareToPosts"
-        >게시판에 공유 →</button>
-      </div>
-    </nav>
+    </div>
 
     <div class="shell">
       <!-- 1: AI CHAT (fixed column) -->
@@ -416,16 +426,23 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
   font-family:'Pretendard','Archivo',sans-serif;color:var(--ink);background:var(--paper);
   -webkit-font-smoothing:antialiased}
 
-/* NAV */
-nav{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;
-  justify-content:space-between;padding:0 24px;position:relative;z-index:1200;background:#fff}
+/* NAV + COURSE-BAR: 함께 고정되는 헤더 스택 */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:1200;background:#fff}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+nav{height:64px;border-bottom:1px solid var(--line);background:#fff}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
 .logo{display:flex;align-items:center;gap:9px;font-family:'Archivo',sans-serif;font-weight:800;
   letter-spacing:-.03em;font-size:18px;text-decoration:none;color:var(--ink)}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
-.nav-links{display:flex;gap:30px;list-style:none;margin-left:18px}
+.nav-links{display:flex;gap:30px;list-style:none}
+.nav-spacer{width:110px}
 .nav-links a{color:var(--ink-60);text-decoration:none;font-size:14px;font-weight:500;position:relative;padding:4px 0}
 .nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--ink);transition:width .3s var(--ease)}
-.nav-links a:hover::after{width:100%}
+.nav-links a:hover::after,.nav-links a.here::after{width:100%}
+.nav-links a.here{color:var(--ink)}
+
+.course-bar{height:60px;border-bottom:1px solid var(--line);background:#fff}
+.course-bar-in{height:100%;display:flex;align-items:center;justify-content:space-between}
 .nav-tags{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 .nav-tags .tag{display:flex;flex-direction:column;gap:1px;padding:7px 16px;position:relative}
 .nav-tags .tag + .tag::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:1px;background:var(--line)}
@@ -440,7 +457,7 @@ nav{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:cen
 .nbtn.primary:hover{background:var(--route);border-color:var(--route)}
 
 /* LAYOUT */
-.shell{display:grid;grid-template-columns:420px 392px 1fr;height:calc(100vh - 64px)}
+.shell{display:grid;grid-template-columns:420px 392px 1fr;height:calc(100vh - 124px);margin-top:124px}
 
 .chat-column{padding:18px 12px;display:flex;flex-direction:column;gap:12px}
 .chat-column .chat-panel{height:calc(100vh - 64px - 36px);display:flex;flex-direction:column}
