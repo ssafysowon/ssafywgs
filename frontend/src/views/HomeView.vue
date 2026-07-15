@@ -73,12 +73,12 @@ onBeforeUnmount(() => {
 <template>
   <div class="home">
     <nav id="nav">
-      <div class="wrap nav-in">
-        <a href="#" class="logo"><span class="dot"></span>LocalHub</a>
+        <div class="wrap nav-in">
+        <router-link to="/" class="logo"><span class="dot"></span>LocalHub</router-link>
         <ul class="nav-links">
           <li><router-link to="/course">코스 만들기</router-link></li>
-          <li><a href="#">공유 게시판</a></li>
-          <li><a href="#">소개</a></li>
+          <li><router-link to="/posts">공유 게시판</router-link></li>
+          <li><router-link to="/about">소개</router-link></li>
         </ul>
         <span class="nav-spacer" aria-hidden="true"></span>
       </div>
@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,800;1,800&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
@@ -278,14 +278,18 @@ onBeforeUnmount(() => {
     transition:transform .25s var(--ease),background .25s var(--ease),box-shadow .3s var(--ease);
   }
   .btn:hover{transform:translateY(-2px);background:#2420E8;border-color:#2420E8;box-shadow:0 10px 24px -10px rgba(46,43,255,.45)}
-  .btn:active{transform:translateY(0)}
+  .btn:active{
+    transform:translateY(1px) scale(.995);
+    box-shadow:0 6px 18px -14px rgba(14,16,19,0.12), inset 0 3px 8px rgba(0,0,0,0.06);
+  }
+  .btn:focus-visible{outline:2px solid rgba(46,43,255,0.12);outline-offset:3px}
   .btn .arrow{transition:transform .3s var(--ease)}
   .btn:hover .arrow{transform:translateX(3px)}
   .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
   .btn.ghost:hover{border-color:var(--ink);box-shadow:none}
   .btn.sm{height:38px;padding:0 16px;font-size:13px}
 
-  header{padding:150px 0 0;text-align:center;position:relative;flex:1}
+  header{padding:60px 0 0;text-align:center;position:relative;flex:1}
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     font-family:'Archivo',sans-serif;font-size:11px;font-weight:600;
@@ -352,16 +356,24 @@ onBeforeUnmount(() => {
   .readout b{color:var(--ink);font-weight:600}
 
   .stage{
-    margin-top:56px;
-    perspective:1600px;
-    padding-bottom:40px;
-    -webkit-mask-image:linear-gradient(to bottom,#000 62%,transparent 100%);
-            mask-image:linear-gradient(to bottom,#000 62%,transparent 100%);
+    margin-top:36px;
+    perspective:1400px;
+    padding-bottom:48px; /* reduce bottom space so content + plane fit on one screen */
+    -webkit-mask-image:linear-gradient(to bottom,#000 82%,transparent 100%);
+            mask-image:linear-gradient(to bottom,#000 82%,transparent 100%);
   }
   .plane{
-    transform:rotateX(52deg) rotateZ(-16deg) scale(1.12);
+    transform:rotateX(52deg) rotateZ(-16deg) scale(0.95) translateY(40px);
     transform-origin:50% 30%;
     animation:tilt 1.3s var(--ease) .5s backwards;
+    max-width:1400px;margin:0 auto;display:block
+  }
+  .plane svg{width:100%;height:auto;max-height:420px;display:block}
+
+  /* On very tall screens, avoid plane scaling up too much */
+  @media (min-height: 900px){
+    header{padding:50px 0 0}
+    .plane svg{max-height:520px}
   }
   @keyframes tilt{
     from{opacity:0;transform:rotateX(66deg) rotateZ(-16deg) scale(1.02) translateY(60px)}
@@ -410,4 +422,4 @@ onBeforeUnmount(() => {
     *{animation:none!important;transition:none!important}
     .route{stroke-dashoffset:0}
   }
-</style>
+</style scoped>

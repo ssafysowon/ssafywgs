@@ -9,7 +9,8 @@ const router = useRouter()
 const incoming = (window?.history?.state?.answers) || {}
 const answers = reactive({
   time: incoming.time || '1시간',
-  company: incoming.company || '싸피 친구',
+  field: incoming.field || '강남구',
+  companion: incoming.companion || '싸피 친구',
   concept: incoming.concept || '조용한 산책'
 })
 
@@ -154,6 +155,20 @@ async function sendChat (text) {
 function submitInput () { sendChat(chatInput.value) }
 function quickAsk (q) { chatOpen.value = true; sendChat(q) }
 
+function goShareToPosts() {
+  router.push({
+    path: '/posts/create',
+    state: {
+      prefill: {
+        district: answers.field,
+        companion: answers.companion,
+        title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
+        content: `${answers.time} 동안 ${answers.field}에서 ${answers.companion}와 함께 ${answers.concept} 코스 추천합니다.`
+      }
+    }
+  })
+}
+
 onMounted(() => {
   initMap()
   drawMap()
@@ -170,14 +185,23 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
   <div class="page">
     <nav>
       <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
-      <div class="nav-tags">
+      <ul class="nav-links">
+        <li><router-link to="/course">코스 만들기</router-link></li>
+        <li><router-link to="/posts">공유 게시판</router-link></li>
+        <li><router-link to="/about">소개</router-link></li>
+      </ul>
+        <div class="nav-tags">
         <span class="tag"><span class="k">Time</span><span class="v">{{ answers.time }}</span></span>
-        <span class="tag"><span class="k">With</span><span class="v">{{ answers.company }}</span></span>
+        <span class="tag"><span class="k">Area</span><span class="v">{{ answers.field }}</span></span>
+        <span class="tag"><span class="k">With</span><span class="v">{{ answers.companion }}</span></span>
         <span class="tag"><span class="k">Mood</span><span class="v">{{ answers.concept }}</span></span>
       </div>
         <div class="nav-actions">
         <button class="nbtn" @click="router.push({ name: 'course' })">↺ 다시 만들기</button>
-        <button class="nbtn primary">게시판에 공유 →</button>
+        <button
+          class="nbtn primary"
+          @click="goShareToPosts"
+        >게시판에 공유 →</button>
       </div>
     </nav>
 
@@ -295,6 +319,10 @@ nav{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:cen
 .logo{display:flex;align-items:center;gap:9px;font-family:'Archivo',sans-serif;font-weight:800;
   letter-spacing:-.03em;font-size:18px;text-decoration:none;color:var(--ink)}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
+.nav-links{display:flex;gap:30px;list-style:none;margin-left:18px}
+.nav-links a{color:var(--ink-60);text-decoration:none;font-size:14px;font-weight:500;position:relative;padding:4px 0}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--ink);transition:width .3s var(--ease)}
+.nav-links a:hover::after{width:100%}
 .nav-tags{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 .nav-tags .tag{display:flex;flex-direction:column;gap:1px;padding:7px 16px;position:relative}
 .nav-tags .tag + .tag::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:1px;background:var(--line)}
