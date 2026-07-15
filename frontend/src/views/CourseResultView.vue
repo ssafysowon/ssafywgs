@@ -50,10 +50,13 @@ let layersGroup = null
 
 function initMap () {
   map = L.map('map', { zoomControl: true }).setView([37.5045, 127.042], 15)
-  // Stadia Alidade Smooth — 부드러운 고급 회색 톤.
-  // 개발(localhost)은 보통 키 없이 동작. 배포 시 stadiamaps.com 에서 무료 키 발급 후
-  // URL 뒤에 ?api_key=YOUR_KEY 를 붙이세요.
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+
+  const apiKey = import.meta.env.VITE_STADIA_API_KEY
+  const tileUrl = apiKey
+    ? `https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=${apiKey}`
+    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+
+  L.tileLayer(tileUrl, {
     attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
     maxZoom: 20
   }).addTo(map)
