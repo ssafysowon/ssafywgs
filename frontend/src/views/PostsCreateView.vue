@@ -5,7 +5,7 @@ import L from 'leaflet'
 
 const router = useRouter()
 
-const API_BASE_URL = 'http://127.0.0.1:8000'
+const API_BASE_URL = 'https://ssafyescape.onrender.com'
 
 // ── 이전 화면(CourseResultView)에서 넘어온 값 ─────────────────────────
 const incoming = (window?.history?.state?.prefill) || {}
