@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
 
         <div class="cta rv d5">
           <router-link to="/course" class="btn">체험하기 <span class="arrow">→</span></router-link>
-          <a href="#" class="btn ghost">공유된 코스 보기</a>
+          <router-link to="/posts" class="btn ghost">공유된 코스 보기</router-link>
         </div>
 
         <div class="picker rv d5">
