@@ -1,15 +1,17 @@
+import json
+
 from fastapi import Depends, FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 from sqlalchemy.orm import Session, joinedload
 
 import models
 import schemas
-from database import get_db
-
+from database import get_db, engine
 
 from chat import router as chat_router
+
 
 app = FastAPI()
 app.include_router(chat_router)
@@ -20,11 +22,42 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://ssafyescape.netlify.app/",
+        "https://your-netlify-url.netlify.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def ensure_course_json_column():
+    """
+    기존 localhub.db에 posts.course_json 컬럼이 없을 때 자동으로 추가합니다.
+    이미 컬럼이 있으면 아무 작업도 하지 않습니다.
+    """
+    with engine.begin() as conn:
+        table = conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='posts'")
+        ).fetchone()
+
+        if not table:
+            print("posts 테이블이 아직 없습니다. init_db.py 실행 후 다시 확인됩니다.")
+            return
+
+        columns = conn.execute(text("PRAGMA table_info(posts)")).fetchall()
+        column_names = [column[1] for column in columns]
+
+        if "course_json" not in column_names:
+            conn.execute(text("ALTER TABLE posts ADD COLUMN course_json TEXT"))
+            print("posts 테이블에 course_json 컬럼을 추가했습니다.")
+        else:
+            print("posts.course_json 컬럼이 이미 있습니다.")
+
+
+@app.on_event("startup")
+def startup_event():
+    ensure_course_json_column()
 
 
 @app.get("/")
@@ -128,7 +161,17 @@ class PostUpdateRequest(BaseModel):
     time: str | None = None
     companion: str | None = None
     district: str | None = None
-    places: list[PostPlaceRequest]
+    places: list[PostPlaceRequest] = []
+
+
+def parse_course_json(post):
+    if not getattr(post, "course_json", None):
+        return None
+
+    try:
+        return json.loads(post.course_json)
+    except json.JSONDecodeError:
+        return None
 
 
 def serialize_post(post):
@@ -142,18 +185,19 @@ def serialize_post(post):
         "district": post.district,
         "companion": post.companion,
         "views": post.views,
-        "created_at": post.created_at.strftime("%Y.%m.%d %H:%M") if post.created_at else "",
-        "updated_at": post.updated_at.strftime("%Y.%m.%d %H:%M") if post.updated_at else "",
+        "created_at": post.created_at.strftime("%Y.%m.%d") if post.created_at else "",
+        "updated_at": post.updated_at.strftime("%Y.%m.%d") if post.updated_at else "",
+        "course": parse_course_json(post),
         "place_count": len(ordered_places),
         "places": [
             {
-                "id": item.id,
+                "id": item.place.id,
                 "place_id": item.place.id,
                 "seq": item.seq,
+                "note": item.note,
                 "title": item.place.title,
                 "addr1": item.place.addr1,
                 "district": item.place.district,
-                "note": item.note,
                 "lat": item.place.lat,
                 "lng": item.place.lng,
                 "image": item.place.image,
@@ -224,6 +268,7 @@ def get_posts(
             "views": post.views,
             "created_at": post.created_at.strftime("%Y.%m.%d") if post.created_at else "",
             "place_count": len(ordered_places),
+            "course": parse_course_json(post),
             "places": [
                 {
                     "id": item.place.id,
@@ -258,12 +303,6 @@ def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
             detail="비밀번호는 숫자 4자리여야 합니다.",
         )
 
-    if not payload.place_ids:
-        raise HTTPException(
-            status_code=400,
-            detail="코스 장소를 최소 1개 이상 선택해야 합니다.",
-        )
-
     post = models.Post(
         title=payload.title,
         content=payload.content,
@@ -271,6 +310,7 @@ def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
         time=payload.time,
         district=payload.district,
         companion=payload.companion,
+        course_json=json.dumps(payload.course, ensure_ascii=False) if payload.course else None,
     )
 
     db.add(post)
@@ -279,7 +319,7 @@ def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
 
     seq = 1
 
-    for place_id in payload.place_ids:
+    for place_id in payload.place_ids or []:
         place = db.query(models.Place).filter(models.Place.id == place_id).first()
 
         if not place:
@@ -299,6 +339,7 @@ def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
         seq += 1
 
     db.commit()
+    db.refresh(post)
 
     return {
         "message": "게시글이 작성되었습니다.",
@@ -393,7 +434,7 @@ def update_post(
         models.PostPlace.post_id == post_id
     ).delete()
 
-    for item in request.places:
+    for item in request.places or []:
         place = db.query(models.Place).filter(models.Place.id == item.place_id).first()
 
         if not place:

@@ -1,6 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const API_BASE_URL = 'https://ssafyescape.onrender.com'
 
@@ -14,8 +16,39 @@ const showPasswordModal = ref(false)
 const password = ref('')
 const passwordError = ref('')
 
+let map = null
+let markers = []
+let layersGroup = null
+
+const detailCourse = computed(() => {
+  if (post.value?.course) {
+    return post.value.course
+  }
+
+  return {
+    title: post.value?.title || '공유 코스',
+    totalTime: post.value?.time || '',
+    start: {
+      name: 'SSAFY 역삼캠퍼스',
+      lat: 37.5009,
+      lng: 127.0369,
+    },
+    stops: [],
+  }
+})
+
 onMounted(() => {
   fetchPostDetail()
+})
+
+onBeforeUnmount(() => {
+  if (map) {
+    map.remove()
+    map = null
+  }
+
+  markers = []
+  layersGroup = null
 })
 
 async function fetchPostDetail() {
@@ -41,6 +74,16 @@ async function fetchPostDetail() {
     post.value = null
   } finally {
     loading.value = false
+  }
+
+  await nextTick()
+
+  if (post.value) {
+    try {
+      initDetailMap()
+    } catch (mapError) {
+      console.error('상세 지도 렌더링 실패:', mapError)
+    }
   }
 }
 
@@ -93,6 +136,83 @@ async function verifyPassword() {
   }
 }
 
+function pinIcon(label, isStart) {
+  return L.divIcon({
+    className: '',
+    iconSize: [36, 46],
+    iconAnchor: [18, 44],
+    popupAnchor: [0, -42],
+    html: `<div class="pin ${isStart ? 'start' : ''}"><div class="head"></div><div class="num">${label}</div></div>`,
+  })
+}
+
+function hoverHtml(s) {
+  return `<div class="hovercard"><div class="hc-top">
+    <div class="hc-cat">${s.category || ''}</div><div class="hc-name">${s.name || ''}</div>
+    <div class="hc-desc">${s.description || ''}</div></div>
+    <div class="hc-foot">머무름 <b>${s.stay || '-'}</b></div></div>`
+}
+
+function initDetailMap() {
+  const course = detailCourse.value
+
+  if (!course?.start || !course?.stops?.length) {
+    return
+  }
+
+  if (map) {
+    map.remove()
+    map = null
+  }
+
+  map = L.map('detailCourseMap', {
+    zoomControl: true,
+    scrollWheelZoom: false,
+  }).setView([course.start.lat, course.start.lng], 15)
+
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
+    maxZoom: 20,
+  }).addTo(map)
+
+  const seq = [{ ...course.start, isStart: true }, ...course.stops]
+  const ll = seq.map((p) => [p.lat, p.lng])
+
+  layersGroup = L.layerGroup([
+    L.polyline(ll, {
+      color: '#fff',
+      weight: 8,
+      opacity: 1,
+      lineJoin: 'round',
+    }),
+    L.polyline(ll, {
+      color: '#0E1013',
+      weight: 3.5,
+      opacity: 1,
+      dashArray: '1 9',
+      lineCap: 'round',
+    }),
+  ]).addTo(map)
+
+  markers = []
+
+  seq.forEach((p, i) => {
+    const mk = L.marker([p.lat, p.lng], {
+      icon: pinIcon(p.isStart ? '★' : String(i), p.isStart),
+    }).addTo(map)
+
+    if (!p.isStart) {
+      mk.bindPopup(hoverHtml(p), {
+        closeButton: false,
+        offset: [0, -6],
+      })
+    }
+
+    markers.push(mk)
+  })
+
+  map.fitBounds(L.latLngBounds(ll).pad(0.25))
+}
 </script>
 
 <template>
@@ -126,13 +246,13 @@ async function verifyPassword() {
           <h1>{{ post.title }}</h1>
           <button type="button" class="edit-button" @click="openEditPasswordModal">
             수정
-        </button>
+          </button>
         </div>
 
         <div class="meta-row">
           <span>작성일 {{ post.created_at || '날짜 없음' }}</span>
           <span>조회 {{ post.views || 0 }}</span>
-          <span>장소 {{ post.place_count || post.places?.length || 0 }}개</span>
+          <span>장소 {{ detailCourse.stops?.length || post.place_count || 0 }}개</span>
         </div>
 
         <hr />
@@ -144,29 +264,19 @@ async function verifyPassword() {
         <hr />
 
         <section class="course-section">
-          <h2>추천 코스</h2>
+          <div class="course-title-row">
+            <h2>선택한 코스</h2>
+            <p>{{ detailCourse.title }} · {{ detailCourse.totalTime }}</p>
+          </div>
 
-          <div class="course-list">
-            <template
-              v-for="(place, index) in post.places"
-              :key="place.seq || place.place_id || index"
-            >
-              <div class="course-card">
-                <div class="course-head">
-                  <span>{{ index + 1 }}</span>
-                  <strong>{{ place.title }}</strong>
-                </div>
-                <p class="addr">{{ place.addr1 || '주소 정보 없음' }}</p>
-                <p class="note">{{ place.note || '장소 메모가 없습니다.' }}</p>
-              </div>
+          <div
+            v-if="detailCourse.stops && detailCourse.stops.length"
+            id="detailCourseMap"
+            class="course-map"
+          ></div>
 
-              <div
-                v-if="index < post.places.length - 1"
-                class="arrow"
-              >
-                →
-              </div>
-            </template>
+          <div v-else class="empty-course">
+            저장된 코스 정보가 없습니다.
           </div>
         </section>
 
@@ -178,32 +288,58 @@ async function verifyPassword() {
       </article>
 
       <aside class="side-card">
-        <h2>게시물 정보</h2>
+        <div class="kicker">Preview</div>
+        <h3>{{ post.title }}</h3>
 
-        <dl>
-          <div>
-            <dt>지역</dt>
-            <dd>{{ post.district || '-' }}</dd>
+        <div class="preview-tags">
+          <span v-if="post.time">⏱ {{ post.time }}</span>
+          <span v-if="post.district">⌖ {{ post.district }}</span>
+          <span v-if="post.companion">♙ {{ post.companion }}와 함께</span>
+        </div>
+
+        <p class="preview-content">
+          {{ post.content }}
+        </p>
+
+        <div class="preview-course">
+          <h4>선택한 코스</h4>
+
+          <div
+            v-if="detailCourse.stops && detailCourse.stops.length"
+            class="preview-cards"
+          >
+            <div
+              v-for="(s, i) in detailCourse.stops"
+              :key="s.name + i"
+              class="pv-card"
+            >
+              <div class="pv-idx">{{ i + 1 }}</div>
+
+              <div class="pv-body">
+                <div class="pv-name-row">
+                  <span class="pv-name">{{ s.name }}</span>
+                  <span class="pv-cat">{{ s.category }}</span>
+                </div>
+
+                <div class="pv-desc">{{ s.description }}</div>
+
+                <div class="pv-stay">
+                  머무름 <b>{{ s.stay }}</b>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <dt>동행</dt>
-            <dd>{{ post.companion || '-' }}</dd>
+          <div v-else class="preview-empty">
+            저장된 코스 정보가 없습니다.
           </div>
+        </div>
 
-          <div>
-            <dt>작성일</dt>
-            <dd>{{ post.created_at || '-' }}</dd>
-          </div>
-
-          <div>
-            <dt>조회수</dt>
-            <dd>{{ post.views || 0 }}</dd>
-          </div>
-        </dl>
+        <div class="preview-help">ⓘ 미리보기는 실제 게시글과 다를 수 있습니다.</div>
       </aside>
     </div>
-         <div v-if="showPasswordModal" class="modal-backdrop">
+
+    <div v-if="showPasswordModal" class="modal-backdrop">
       <div class="password-modal">
         <h2>게시글 비밀번호 확인</h2>
         <p>게시글 수정을 위해 작성 시 입력한 4자리 비밀번호를 입력해주세요.</p>
@@ -226,6 +362,7 @@ async function verifyPassword() {
           <button type="button" class="cancel-button" @click="closePasswordModal">
             취소
           </button>
+
           <button type="button" class="confirm-button" @click="verifyPassword">
             확인
           </button>
@@ -234,6 +371,161 @@ async function verifyPassword() {
     </div>
   </section>
 </template>
+
+<style>
+.pin {
+  position: relative;
+  width: 36px;
+  height: 46px;
+  display: flex;
+  justify-content: center;
+  filter: drop-shadow(0 8px 10px rgba(14, 16, 19, 0.22));
+}
+
+.pin::after {
+  content: "";
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(14, 16, 19, 0.25);
+  filter: blur(1px);
+}
+
+.pin .head {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(45deg);
+  background: var(--ink, #111827);
+  border: 2.5px solid #fff;
+  transition: transform 0.2s ease;
+}
+
+.pin .num {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  pointer-events: none;
+}
+
+.pin.start .head {
+  background: var(--route, #034ea1);
+}
+
+.pin:hover .head {
+  transform: rotate(45deg) scale(1.1);
+}
+
+.hovercard {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #dbe2ec;
+  box-shadow: 0 18px 40px -18px rgba(14, 16, 19, 0.45);
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.hovercard .hc-top {
+  padding: 12px 14px;
+}
+
+.hovercard .hc-cat {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #034ea1;
+  text-transform: uppercase;
+}
+
+.hovercard .hc-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-top: 3px;
+  letter-spacing: -0.01em;
+}
+
+.hovercard .hc-desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.hovercard .hc-foot {
+  border-top: 1px solid #dbe2ec;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.hovercard .hc-foot b {
+  color: #111827;
+  font-weight: 600;
+}
+
+#detailCourseMap .leaflet-tile-pane {
+  filter: contrast(1.02) brightness(1.01);
+}
+
+#detailCourseMap.leaflet-container {
+  font-family: 'Pretendard', sans-serif;
+  background: #eef0f2;
+}
+
+#detailCourseMap .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 14px;
+}
+
+#detailCourseMap .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+#detailCourseMap .leaflet-popup-tip {
+  background: #fff;
+  border: 1px solid #dbe2ec;
+}
+
+#detailCourseMap .leaflet-popup-close-button {
+  display: none;
+}
+
+#detailCourseMap .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 6px 20px -10px rgba(14, 16, 19, 0.3) !important;
+  margin: 14px !important;
+}
+
+#detailCourseMap .leaflet-control-zoom a {
+  border-radius: 10px !important;
+  color: #111827 !important;
+  border: 1px solid #dbe2ec !important;
+  background: #fff !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 30px !important;
+  font-size: 17px !important;
+}
+
+#detailCourseMap .leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+</style>
 
 <style scoped>
 .detail-page {
@@ -264,7 +556,7 @@ async function verifyPassword() {
 
 .detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   gap: 28px;
   align-items: start;
 }
@@ -283,6 +575,7 @@ async function verifyPassword() {
 
 .tag-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 22px;
 }
@@ -346,68 +639,39 @@ async function verifyPassword() {
 }
 
 .course-section h2 {
-  margin: 0 0 20px;
+  margin: 0;
   font-size: 20px;
   font-weight: 850;
 }
 
-.course-list {
-  display: grid;
-  grid-template-columns: 1fr 32px 1fr 32px 1fr;
+.course-title-row {
+  display: flex;
+  align-items: baseline;
   gap: 12px;
-  align-items: center;
+  margin-bottom: 16px;
 }
 
-.course-card {
-  min-height: 128px;
-  padding: 20px;
-  border: 1px solid #dbe2ec;
-  border-radius: 15px;
-  background: #fff;
-}
-
-.course-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.course-head span {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--main-color);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.course-head strong {
-  color: #111827;
-  font-size: 15px;
-  font-weight: 850;
-}
-
-.addr {
-  margin: 12px 0 0;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.note {
-  margin: 10px 0 0;
-  color: #374151;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.arrow {
+.course-title-row p {
+  margin: 0;
   color: var(--main-color);
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.course-map {
+  width: 100%;
+  height: 340px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #eef0f2;
+}
+
+.empty-course,
+.preview-empty {
+  padding: 24px;
+  border: 1px dashed #dbe2ec;
+  border-radius: 14px;
+  color: #6b7280;
   text-align: center;
 }
 
@@ -428,36 +692,158 @@ async function verifyPassword() {
 }
 
 .side-card {
-  padding: 26px;
+  position: sticky;
+  top: 84px;
+  padding: 24px;
 }
 
-.side-card h2 {
-  margin: 0 0 24px;
-  font-size: 19px;
-  font-weight: 850;
+.side-card .kicker {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--main-color);
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.side-card dl {
-  margin: 0;
+.side-card h3 {
+  margin: 0 0 16px;
+  font-size: 21px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  font-weight: 800;
 }
 
-.side-card dl div {
+.preview-tags {
   display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
-.side-card dt {
+.preview-tags span {
+  padding: 7px 12px;
+  border: 1px solid #dbe2ec;
+  border-radius: 999px;
+  color: var(--main-color);
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(3, 78, 161, 0.06);
+}
+
+.preview-content {
+  margin: 0;
   color: #6b7280;
   font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-line;
 }
 
-.side-card dd {
-  margin: 0;
-  color: #374151;
+.preview-course {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #dbe2ec;
+}
+
+.preview-course h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.preview-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pv-card {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 13px 13px 13px 12px;
+  border-radius: 14px;
+  border: 1px solid #dbe2ec;
+  background: #fff;
+}
+
+.pv-card::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: -6px;
+  height: 6px;
+  width: 1.5px;
+  background: #cbd5e1;
+}
+
+.pv-card:first-child::before {
+  display: none;
+}
+
+.pv-idx {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--main-color);
+  color: var(--main-color);
+  background: #fff;
+  font-weight: 700;
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.pv-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pv-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pv-name {
   font-size: 14px;
   font-weight: 700;
+  color: #111827;
+}
+
+.pv-cat {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.pv-desc {
+  font-size: 12.5px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.pv-stay {
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.pv-stay b {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.preview-help {
+  margin-top: 18px;
+  color: #9ca3af;
+  font-size: 12px;
 }
 
 .loading-box,
@@ -469,99 +855,115 @@ async function verifyPassword() {
   color: #6b7280;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(17, 24, 39, 0.36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-modal {
+  position: relative;
+  z-index: 100000;
+  width: 360px;
+  padding: 28px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.password-modal h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.password-modal p {
+  margin: 12px 0 18px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.password-modal input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #dbe2ec;
+  border-radius: 10px;
+  font-size: 15px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.password-modal input:focus {
+  border-color: #034ea1;
+  box-shadow: 0 0 0 3px rgba(3, 78, 161, 0.1);
+}
+
+.error-message {
+  margin: 10px 0 0 !important;
+  color: #dc2626 !important;
+  font-size: 13px !important;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-button,
+.confirm-button {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cancel-button {
+  border: 1px solid #dbe2ec;
+  background: #fff;
+  color: #111827;
+}
+
+.confirm-button {
+  border: 0;
+  background: #034ea1;
+  color: #fff;
+}
+
 @media (max-width: 1000px) {
   .detail-layout {
     grid-template-columns: 1fr;
   }
 
-  .course-list {
-    grid-template-columns: 1fr;
-  }
-
-  .arrow {
-    transform: rotate(90deg);
+  .side-card {
+    position: static;
   }
 }
 
-    .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(17, 24, 39, 0.36);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    }
+@media (max-width: 720px) {
+  .detail-page {
+    padding: 34px 14px 70px;
+  }
 
-    .password-modal {
-    width: 360px;
-    padding: 28px;
-    border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
-    }
+  .title-row {
+    flex-direction: column;
+  }
 
-    .password-modal h2 {
-    margin: 0;
-    color: #111827;
-    font-size: 20px;
-    font-weight: 850;
-    }
+  .title-row h1 {
+    font-size: 28px;
+  }
 
-    .password-modal p {
-    margin: 12px 0 18px;
-    color: #6b7280;
-    font-size: 14px;
-    line-height: 1.6;
-    }
-
-    .password-modal input {
-    width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    border: 1px solid #dbe2ec;
-    border-radius: 10px;
-    font-size: 15px;
-    box-sizing: border-box;
-    outline: none;
-    }
-
-    .password-modal input:focus {
-    border-color: #034ea1;
-    box-shadow: 0 0 0 3px rgba(3, 78, 161, 0.1);
-    }
-
-    .error-message {
-    margin: 10px 0 0 !important;
-    color: #dc2626 !important;
-    font-size: 13px !important;
-    }
-
-    .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    }
-
-    .cancel-button,
-    .confirm-button {
-    flex: 1;
-    height: 42px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    }
-
-    .cancel-button {
-    border: 1px solid #dbe2ec;
-    background: #fff;
-    color: #111827;
-    }
-
-    .confirm-button {
-    border: 0;
-    background: #034ea1;
-    color: #fff;
-    }
+  .course-map {
+    height: 260px;
+  }
+}
 </style>
