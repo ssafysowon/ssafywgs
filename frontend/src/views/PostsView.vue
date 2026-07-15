@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+// AltHeader removed; use global header in App.vue
 
 const router = useRouter()
 
@@ -127,21 +128,16 @@ function getShortContent(content) {
 <template>
   <section class="post-list-page">
     <div class="page-head">
-      <div>
-        <h1>코스 게시판</h1>
-        <p>
-          멀티캠퍼스 역삼 주변과 서울 곳곳의 상황별 코스를 둘러보고,
-          나에게 맞는 코스를 찾아보세요.
-        </p>
-      </div>
+  <div>
+    <h1>코스 게시판</h1>
+    <p>
+      멀티캠퍼스 역삼 주변과 서울 곳곳의 상황별 코스를 둘러보고,
+      나에게 맞는 코스를 찾아보세요.
+    </p>
+  </div>
+</div>
 
-
-      <button type="button" class="write-button" @click="goCreatePage">
-        게시글 작성
-      </button>
-    </div>
-
-    <section class="filter-card">
+<section class="filter-card">
       <div class="search-area">
         <div class="search-box">
           <input
@@ -303,7 +299,7 @@ function getShortContent(content) {
         ›
       </button>
     </div>
-  </section>
+    </section>
 </template>
 
 <style scoped>
@@ -312,7 +308,7 @@ function getShortContent(content) {
   width: 100%;
   max-width: 1220px;
   margin: 0 auto;
-  padding: 56px 24px 80px;
+  padding: 24px 24px 80px;
   color: var(--ink, #111827);
   box-sizing: border-box;
 }
@@ -341,18 +337,7 @@ function getShortContent(content) {
   opacity: 0.6;
 }
 
-.write-button {
-  min-width: 142px;
-  height: 48px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--main-color);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 14px 30px rgba(3, 78, 161, 0.22);
-}
+/* write-button removed */
 
 .filter-card {
   padding: 20px;

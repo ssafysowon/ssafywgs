@@ -18,7 +18,20 @@ const STEPS = [
     ]
   },
   {
-    key: 'company',
+    key: 'field',
+    q: '<span class="accent">어느 구에서</span> 돌아다니실 건가요?',
+    hint: '강남구 주변을 빠르게 선택하거나, 직접 입력해 주세요.',
+    placeholder: '예) 강남구',
+    chips: [
+      { ico: '📍', label: '강남구', value: '강남구' },
+      { ico: '📍', label: '서초구', value: '서초구' },
+      { ico: '📍', label: '송파구', value: '송파구' },
+      { ico: '📍', label: '강동구', value: '강동구' },
+      { ico: '📍', label: '관악구', value: '관악구' }
+    ]
+  },
+  {
+    key: 'companion',
     q: '<span class="accent">누구와 함께</span> 가세요?',
     hint: '동행에 맞춰 장소 톤을 바꿔드려요.',
     placeholder: '예) 오랜만에 만난 고등학교 친구',
@@ -84,7 +97,7 @@ function recordAnswer(key, value) {
 }
 
 function handleNextClick() {
-  const prompt = `출발지: SSAFY 역삼캠퍼스 / 확보 시간: ${answers.time || ''} / 동행: ${answers.company || ''} / 원하는 코스: ${answers.concept || ''}`
+  const prompt = `출발지: SSAFY 역삼캠퍼스 / 확보 시간: ${answers.time || ''} / 구: ${answers.field || ''} / 동행: ${answers.companion || ''} / 원하는 코스: ${answers.concept || ''}`
   console.log(prompt)
   router.push({ name: 'course-result', state: { answers: { ...answers } } })
 }
@@ -97,9 +110,9 @@ onMounted(() => {
 
 <template>
   <div>
-    <nav>
-      <div class="nav-in">
-        <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
+    <nav id="nav">
+      <div class="wrap nav-in">
+        <router-link to="/" class="logo"><span class="dot"></span>LocalHub</router-link>
         <div class="seg">
           <div class="seg-track">
             <span class="seg-fill" :style="{ width: fillWidth }"></span>
@@ -168,20 +181,21 @@ onMounted(() => {
         <div class="final" v-else>
           <div class="summary">
             <span class="tag">⏱ {{ answers.time }}</span>
-            <span class="tag">👥 {{ answers.company }}</span>
+            <span class="tag">📍 {{ answers.field }}</span>
+            <span class="tag">👥 {{ answers.companion }}</span>
             <span class="tag">🎯 {{ answers.concept }}</span>
           </div>
           <button class="btn-next" @click="handleNextClick">지도와 코스 만들기 <span class="arrow">→</span></button>
         </div>
       </div>
-      <p class="helper">3개의 질문에 답하면 <b>지도와 함께 코스가 만들어집니다.</b></p>
+      <p class="helper">4개의 질문에 답하면 <b>지도와 함께 코스가 만들어집니다.</b></p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.nav-in{max-width:720px;margin:0 auto;padding:0 24px;height:66px;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);font-family:'Archivo',sans-serif;font-weight:800;letter-spacing:-.03em;font-size:18px}
+.wrap.nav-in{max-width:1240px;margin:0 auto;padding:0 24px;height:66px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);font-family:'Archivo',sans-serif;font-weight:800;letter-spacing:-.03em;font-size:19px}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
 .seg{display:flex;align-items:center;gap:14px}
 .seg-track{display:flex;align-items:center;position:relative;height:14px}

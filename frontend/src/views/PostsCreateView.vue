@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+// AltHeader removed; use global header from App.vue
+
 const router = useRouter()
 
 const API_BASE_URL = 'http://127.0.0.1:8000'
@@ -16,6 +18,13 @@ const form = ref({
   district: '강남구',
   companion: '친구',
 })
+
+// Apply prefill from navigation state (if coming from CourseResult)
+const incoming = (window?.history?.state?.prefill) || {}
+if (incoming.district) form.value.district = incoming.district
+if (incoming.companion) form.value.companion = incoming.companion
+if (incoming.title) form.value.title = incoming.title
+if (incoming.content) form.value.content = incoming.content
 
 const searchKeyword = ref('')
 const places = ref([])
