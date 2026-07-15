@@ -39,7 +39,7 @@ const STEPS = [
       { ico: '🧍', label: '혼자', value: '혼자' },
       { ico: '💻', label: '싸피 친구', value: '싸피 친구와' },
       { ico: '👪', label: '부모님', value: '찾아오신 부모님과' },
-      { ico: '🎓', label: '프로님과', value: '프로님과 함께' }
+      { ico: '🎓', label: '프로님/강사님과', value: '프로님/강사님과' }
     ]
   },
   {
@@ -50,7 +50,6 @@ const STEPS = [
     chips: [
       { ico: '🌿', label: '조용한 산책', value: '조용히 걷기 좋은' },
       { ico: '📸', label: '사진 맛집', value: '사진 찍기 좋은' },
-      { ico: '🍜', label: '밥집 위주', value: '맛집 중심' },
       { ico: '🎨', label: '전시·문화', value: '전시·문화 공간' },
       { ico: '🔋', label: '빠른 기분전환', value: '짧고 굵은 기분전환' }
     ]
