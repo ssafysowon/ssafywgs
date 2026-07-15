@@ -14,6 +14,7 @@ class Post(Base):
     content = Column(Text, nullable=False)
     password = Column(String, nullable=False)
 
+    time = Column(String, nullable=True)
     companion = Column(String, nullable=True)  # 연인, 친구, 가족, 혼자
     district = Column(String, nullable=True)   # 강남구, 종로구 등
 
