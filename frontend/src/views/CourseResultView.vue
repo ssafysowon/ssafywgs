@@ -3,7 +3,33 @@ import { ref, reactive, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
 
+async function postJson(path, payload) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(payload)
+  })
+  if (!res.ok) {
+    const txt = await res.text().catch(() => res.statusText)
+    throw new Error(txt || res.statusText)
+  }
+  return res.json()
+}
+
+function mapServerStopsToLocal(stops) {
+  return (stops || []).map(s => ({
+    id: s.id,
+    name: s.name || s.title || '',
+    cat: s.category || s.cat || '',
+    desc: s.description || s.desc || '',
+    lat: s.lat,
+    lng: s.lng,
+    stay: s.stay || ''
+  }))
+}
+
 const router = useRouter()
+const courseTitle = ref('역삼 탈출 코스')
 
 // 이전 페이지에서 router.push({ name, state:{ answers } }) 로 넘어온 값
 const incoming = (window?.history?.state?.answers) || {}
@@ -120,21 +146,31 @@ function scrollChat () {
  *   return data.message
  */
 async function refineCourse (text) {
-  if (/카페|커피/.test(text)) {
-    STOPS.value = [...STOPS.value, { name:'앤트러사이트', cat:'카페', lat:37.4995, lng:127.0332, desc:'조용한 감성 로스터리.', stay:'20분' }]
-    return '근처 카페를 마지막에 추가했어요 ☕'
+  try {
+    const coursePayload = {
+      title: `역삼 ${answers.concept} 코스`,
+      totalTime: answers.time,
+      start: { name: START.name, lat: START.lat, lng: START.lng },
+      stops: STOPS.value.map(s => ({ id: s.id, description: s.desc, stay: s.stay }))
+    }
+
+    const res = await postJson('/api/course/modify', { request: text, course: coursePayload })
+    if (res.course) {
+      STOPS.value = mapServerStopsToLocal(res.course.stops)
+      if (res.course.start) {
+        START.name = res.course.start.name || START.name
+        START.lat = res.course.start.lat || START.lat
+        START.lng = res.course.start.lng || START.lng
+      }
+
+      if (res.course.title) courseTitle.value = res.course.title
+      if (res.course.totalTime) answers.time = res.course.totalTime
+    }
+    return res.message || '변경을 반영했습니다.'
+  } catch (err) {
+    console.error('modify 실패', err)
+    return '변경 실패: 서버 오류'
   }
-  if (/조용/.test(text)) {
-    const arr = [...STOPS.value]
-    arr[0] = { name:'봉은사', cat:'사찰', lat:37.5150, lng:127.0575, desc:'도심 속 고요한 산책 명소.', stay:'25분' }
-    STOPS.value = arr
-    return '첫 코스를 더 조용한 곳으로 바꿨어요 🌿'
-  }
-  if (/30분|줄여/.test(text)) {
-    STOPS.value = STOPS.value.slice(0, 2)
-    return '30분에 맞춰 두 곳으로 줄였어요 ⚡'
-  }
-  return '반영했어요. 지도에서 확인해보세요.'
 }
 
 async function sendChat (text) {
@@ -173,11 +209,48 @@ function goShareToPosts() {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   initMap()
+
+  try {
+    const payload = {
+      time: answers.time,
+      field: answers.field,
+      companion: answers.companion,
+      concept: answers.concept
+    }
+
+    const res = await postJson('/api/course/generate', payload)
+
+    if (res.course) {
+      STOPS.value = mapServerStopsToLocal(res.course.stops)
+
+      if (res.course.start) {
+        START.name = res.course.start.name || START.name
+        START.lat = res.course.start.lat || START.lat
+        START.lng = res.course.start.lng || START.lng
+      }
+    }
+    
+      if (res.course.title) courseTitle.value = res.course.title
+      if (res.course.totalTime) answers.time = res.course.totalTime
+
+    // 기존 멘트 유지
+    messages.value.push({
+      who: 'bot',
+      text: '코스를 짜뒀어요. 바꾸고 싶은 부분을 편하게 말해주세요 🙂'
+    })
+
+  } catch (err) {
+    console.error('generate 실패', err)
+    messages.value.push({
+      who: 'bot',
+      text: '코스 생성에 실패했습니다.'
+    })
+  }
+
   drawMap()
-  nextTick(() => map && map.invalidateSize())  // 라우팅 직후 지도 크기 재인식
-  messages.value.push({ who: 'bot', text: '코스를 짜뒀어요. 바꾸고 싶은 부분을 편하게 말해주세요 🙂' })
+  nextTick(() => map && map.invalidateSize())
 })
 
 onBeforeUnmount(() => { if (map) { map.remove(); map = null } })

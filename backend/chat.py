@@ -261,6 +261,7 @@ def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
         })
 
     course_out = parsed.get("course", {})
+    course_out["stops"] = new_stops
     # preserve start if model omitted it
     if not course_out.get("start"):
         if course.get("start"):
