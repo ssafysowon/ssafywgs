@@ -1,6 +1,7 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session, selectinload
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, selectinload, joinedload
 from sqlalchemy import or_
 
 import models
@@ -148,12 +149,12 @@ def get_posts(
         .all()
     )
 
-    result = []
+    items = []
 
     for post in posts:
         ordered_places = sorted(post.places, key=lambda item: item.seq)
 
-        result.append({
+        items.append({
             "id": post.id,
             "title": post.title,
             "content": post.content,
@@ -165,6 +166,7 @@ def get_posts(
             "places": [
                 {
                     "id": item.place.id,
+                    "place_id": item.place.id,
                     "seq": item.seq,
                     "title": item.place.title,
                     "addr1": item.place.addr1,
@@ -182,11 +184,11 @@ def get_posts(
         "total": total,
         "page": page,
         "size": size,
-        "items": result,
+        "items": items,
     }
 
 
-@app.get("/api/posts/{post_id}", response_model=schemas.PostDetail)
+@app.get("/api/posts/{post_id}")
 def get_post(post_id: int, db: Session = Depends(get_db)):
     post = (
         db.query(models.Post)
@@ -194,6 +196,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
         .filter(models.Post.id == post_id)
         .first()
     )
+
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
@@ -203,31 +206,39 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     db.refresh(post)
 
     places = sorted(post.places, key=lambda pp: pp.seq)
-    place_outs = [schemas.PostPlaceOut(seq=pp.seq, note=pp.note, place=schemas.PlaceOut(
-        id=pp.place.id,
-        contentid=pp.place.contentid,
-        category=pp.place.category,
-        title=pp.place.title,
-        addr1=pp.place.addr1,
-        district=pp.place.district,
-        lat=pp.place.lat,
-        lng=pp.place.lng,
-        image=pp.place.image,
-        tel=pp.place.tel,
-    )) for pp in places]
 
-    return schemas.PostDetail(
-        id=post.id,
-        title=post.title,
-        content=post.content,
-        district=post.district,
-        companion=post.companion,
-        views=post.views,
-        created_at=post.created_at,
-        updated_at=post.updated_at,
-        places=place_outs,
-    )
-
+    return {
+        "post": {
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "district": post.district,
+            "companion": post.companion,
+            "views": post.views,
+            "created_at": post.created_at.strftime("%Y.%m.%d %H:%M") if post.created_at else "",
+            "updated_at": post.updated_at.strftime("%Y.%m.%d %H:%M") if post.updated_at else "",
+            "place_count": len(places),
+            "places": [
+                {
+                    "id": pp.place.id,
+                    "place_id": pp.place.id,
+                    "seq": pp.seq,
+                    "note": pp.note,
+                    "title": pp.place.title,
+                    "addr1": pp.place.addr1,
+                    "district": pp.place.district,
+                    "lat": pp.place.lat,
+                    "lng": pp.place.lng,
+                    "image": pp.place.image,
+                    "tel": pp.place.tel,
+                    "category": pp.place.category,
+                    "contentid": pp.place.contentid,
+                }
+                for pp in places
+                if pp.place
+            ],
+        }
+    }
 
 @app.post("/api/posts")
 def create_post(payload: schemas.PostCreate, db: Session = Depends(get_db)):
@@ -288,3 +299,199 @@ def delete_post(post_id: int, payload: schemas.PostDeleteRequest, db: Session = 
     db.delete(post)
     db.commit()
     return {"message": "삭제되었습니다."}
+
+class PasswordCheckRequest(BaseModel):
+    password: str
+
+
+class PostPlaceRequest(BaseModel):
+    place_id: int
+    seq: int
+    note: str | None = ""
+
+
+class PostUpdateRequest(BaseModel):
+    title: str
+    content: str
+    password: str
+    companion: str | None = None
+    district: str | None = None
+    places: list[PostPlaceRequest]
+
+
+def serialize_post(post):
+    ordered_places = sorted(post.places, key=lambda item: item.seq)
+
+    return {
+        "id": post.id,
+        "title": post.title,
+        "content": post.content,
+        "district": post.district,
+        "companion": post.companion,
+        "views": post.views,
+        "created_at": post.created_at.strftime("%Y.%m.%d %H:%M") if post.created_at else "",
+        "updated_at": post.updated_at.strftime("%Y.%m.%d %H:%M") if post.updated_at else "",
+        "place_count": len(ordered_places),
+        "places": [
+            {
+                "id": item.id,
+                "place_id": item.place.id,
+                "seq": item.seq,
+                "title": item.place.title,
+                "addr1": item.place.addr1,
+                "district": item.place.district,
+                "note": item.note,
+                "lat": item.place.lat,
+                "lng": item.place.lng,
+                "image": item.place.image,
+            }
+            for item in ordered_places
+            if item.place
+        ],
+    }
+
+
+@app.get("/api/posts/{post_id}")
+def get_post_detail(
+    post_id: int,
+    db: Session = Depends(get_db),
+):
+    post = (
+        db.query(models.Post)
+        .options(
+            joinedload(models.Post.places).joinedload(models.PostPlace.place)
+        )
+        .filter(models.Post.id == post_id)
+        .first()
+    )
+
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+
+    post.views += 1
+    db.commit()
+    db.refresh(post)
+
+    related_posts = (
+        db.query(models.Post)
+        .filter(models.Post.id != post_id)
+        .order_by(models.Post.views.desc(), models.Post.id.desc())
+        .limit(3)
+        .all()
+    )
+
+    return {
+        "post": serialize_post(post),
+        "related_posts": [
+            {
+                "id": item.id,
+                "title": item.title,
+                "views": item.views,
+            }
+            for item in related_posts
+        ],
+    }
+
+
+@app.post("/api/posts/{post_id}/verify-password")
+def verify_post_password(
+    post_id: int,
+    request: PasswordCheckRequest,
+    db: Session = Depends(get_db),
+):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+
+    if post.password != request.password:
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+
+    return {"message": "비밀번호 확인 완료"}
+
+
+@app.put("/api/posts/{post_id}")
+def update_post(
+    post_id: int,
+    request: PostUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+
+    if post.password != request.password:
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+
+    post.title = request.title
+    post.content = request.content
+    post.companion = request.companion
+    post.district = request.district
+
+    db.query(models.PostPlace).filter(
+        models.PostPlace.post_id == post_id
+    ).delete()
+
+    for item in request.places:
+        place = db.query(models.Place).filter(models.Place.id == item.place_id).first()
+
+        if not place:
+            raise HTTPException(
+                status_code=404,
+                detail=f"장소 ID {item.place_id}를 찾을 수 없습니다.",
+            )
+
+        db.add(
+            models.PostPlace(
+                post_id=post_id,
+                place_id=item.place_id,
+                seq=item.seq,
+                note=item.note,
+            )
+        )
+
+    db.commit()
+    db.refresh(post)
+
+    return {"message": "게시글이 수정되었습니다.", "post_id": post.id}
+
+
+@app.delete("/api/posts/{post_id}")
+def delete_post(
+    post_id: int,
+    request: PasswordCheckRequest,
+    db: Session = Depends(get_db),
+):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+
+    if post.password != request.password:
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+
+    db.delete(post)
+    db.commit()
+
+    return {"message": "게시글이 삭제되었습니다."}
+
+class PasswordCheckRequest(BaseModel):
+    password: str
+
+
+@app.post("/api/posts/{post_id}/verify-password")
+def verify_post_password(
+    post_id: int,
+    request: PasswordCheckRequest,
+    db: Session = Depends(get_db),
+):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+
+    if post.password != request.password:
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+
+    return {"message": "비밀번호 확인 완료"}

@@ -39,99 +39,6 @@ const pageNumbers = computed(() => {
   return pages.slice(0, 5)
 })
 
-const fallbackPosts = [
-  {
-    id: 1,
-    title: '수업 끝나고 가기 좋은 역삼 산책 코스',
-    content: '멀티캠퍼스에서 도보 30분 내로 갈 수 있는 조용하고 여유로운 산책 코스예요.',
-    district: '강남구',
-    companion: '친구',
-    views: 328,
-    created_at: '2024.05.12',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '선정릉' },
-      { seq: 3, title: '도산공원' },
-    ],
-  },
-  {
-    id: 2,
-    title: '점심시간 1시간 코스 추천',
-    content: '바쁜 점심시간에도 알차게 다녀올 수 있는 맛집과 산책 코스입니다.',
-    district: '강남구',
-    companion: '혼자',
-    views: 256,
-    created_at: '2024.05.11',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '선릉역 맛집 거리' },
-      { seq: 3, title: '선정릉' },
-    ],
-  },
-  {
-    id: 3,
-    title: '비 오는 날 실내 데이트 코스',
-    content: '날씨 걱정 없이 즐길 수 있는 실내 중심 데이트 코스예요. 전시와 카페까지!',
-    district: '강남구',
-    companion: '연인',
-    views: 412,
-    created_at: '2024.05.10',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '코엑스 아쿠아리움' },
-      { seq: 3, title: '스타필드 코엑스' },
-    ],
-  },
-  {
-    id: 4,
-    title: '혼자 걷기 좋은 저녁 코스',
-    content: '하루를 정리하며 천천히 걸을 수 있는 한강과 공원 코스 추천해요.',
-    district: '강남구',
-    companion: '혼자',
-    views: 189,
-    created_at: '2024.05.09',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '탄천 산책로' },
-      { seq: 3, title: '양재천' },
-    ],
-  },
-  {
-    id: 5,
-    title: '주말 브런치 + 카페 코스',
-    content: '느긋한 주말 아침, 브런치로 시작해서 감성 카페까지 이어지는 코스예요.',
-    district: '강남구',
-    companion: '친구',
-    views: 301,
-    created_at: '2024.05.08',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '브런치 맛집' },
-      { seq: 3, title: '감성 카페' },
-    ],
-  },
-  {
-    id: 6,
-    title: '회사 근처 숨은 맛집 탐방',
-    content: '현지인만 아는 역삼 주변 맛집 3곳! 점심과 저녁 모두 추천해요.',
-    district: '강남구',
-    companion: '친구',
-    views: 273,
-    created_at: '2024.05.07',
-    place_count: 3,
-    places: [
-      { seq: 1, title: '멀티캠퍼스 역삼' },
-      { seq: 2, title: '역삼골목 맛집' },
-      { seq: 3, title: '진대감' },
-    ],
-  },
-]
-
 onMounted(() => {
   fetchPosts()
 })
@@ -161,6 +68,8 @@ async function fetchPosts() {
     const response = await fetch(`${API_BASE_URL}/api/posts?${params.toString()}`)
 
     if (!response.ok) {
+      const errorData = await response.json()
+      console.error('게시글 목록 API 오류:', errorData)
       throw new Error('게시글 목록 API 요청 실패')
     }
 
@@ -168,15 +77,11 @@ async function fetchPosts() {
 
     posts.value = data.items
     total.value = data.total
-
-    if (data.items.length === 0) {
-      posts.value = []
-    }
   } catch (error) {
-    console.warn('게시글 API 연결 전이므로 예시 데이터를 표시합니다.', error)
+    console.error('게시글 목록 조회 실패:', error)
 
-    posts.value = fallbackPosts
-    total.value = fallbackPosts.length
+    posts.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -197,6 +102,7 @@ function goCreatePage() {
 }
 
 function goPostDetail(postId) {
+  console.log('상세 페이지로 이동할 게시글 id:', postId)
   router.push(`/posts/${postId}`)
 }
 
@@ -230,6 +136,7 @@ function getShortContent(content) {
           나에게 맞는 코스를 찾아보세요.
         </p>
       </div>
+
 
       <button type="button" class="write-button" @click="goCreatePage">
         게시글 작성
