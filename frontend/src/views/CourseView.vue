@@ -37,9 +37,9 @@ const STEPS = [
     placeholder: '예) 오랜만에 만난 고등학교 친구',
     chips: [
       { ico: '🧍', label: '혼자', value: '혼자' },
-      { ico: '💻', label: '싸피 친구', value: '싸피 친구와' },
-      { ico: '👪', label: '부모님', value: '찾아오신 부모님과' },
-      { ico: '🎓', label: '프로님/강사님과', value: '프로님/강사님과' }
+      { ico: '💻', label: '싸피 친구', value: '싸피 친구' },
+      { ico: '👪', label: '부모님', value: '부모님' },
+      { ico: '🎓', label: '프로님/강사님과', value: '프로님/강사님' }
     ]
   },
   {
