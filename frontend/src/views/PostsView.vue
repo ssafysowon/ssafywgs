@@ -404,10 +404,12 @@ function getShortContent(content) {
 <style scoped>
 .post-list-page {
   --main-color: #034ea1;
+  width: 100%;
   max-width: 1220px;
   margin: 0 auto;
-  padding: 52px 24px 76px;
-  color: var(--ink);
+  padding: 56px 24px 80px;
+  color: var(--ink, #111827);
+  box-sizing: border-box;
 }
 
 .page-head {
@@ -569,6 +571,7 @@ function getShortContent(content) {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  justify-content: center;
 }
 
 .post-card {
@@ -813,13 +816,33 @@ function getShortContent(content) {
     padding: 34px 14px 70px;
   }
 
-  .page-head {
-    flex-direction: column;
-  }
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+  text-align: left;
+}
 
-  .page-head h1 {
-    font-size: 32px;
-  }
+.page-head h1 {
+  margin: 0;
+  color: var(--ink, #111827);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  text-align: left;
+}
+
+.page-head p {
+  margin: 12px 0 0;
+  color: var(--ink, #111827);
+  font-size: 15px;
+  line-height: 1.7;
+  opacity: 0.6;
+  text-align: left;
+}
 
   .write-button {
     width: 100%;

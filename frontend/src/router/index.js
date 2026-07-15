@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import PostsCreateView from '@/views/PostsCreateView.vue'
 
 const HomeView = () => import('@/views/HomeView.vue')
 const PostsView = () => import('@/views/PostsView.vue')
+const PostsCreateView = () => import('@/views/PostsCreateView.vue')
 
 const routes = [
   { 
@@ -18,7 +18,7 @@ const routes = [
   { 
     path: '/posts/create', 
     name: 'PostsCreate', 
-    component: PostCreateView,
+    component: PostsCreateView,
   },
 ]
 

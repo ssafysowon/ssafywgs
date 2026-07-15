@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
         <a href="#" class="logo"><span class="dot"></span>LocalHub</a>
         <ul class="nav-links">
           <li><a href="#">코스 만들기</a></li>
-          <li><a href="#">공유 게시판</a></li>
+          <li><router-link to="/posts">공유 게시판</router-link></li>
           <li><a href="#">소개</a></li>
         </ul>
         <span class="nav-spacer" aria-hidden="true"></span>
