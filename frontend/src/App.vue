@@ -1,5 +1,8 @@
 <script setup>
-import '@/styles/tokens.css'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
 </script>
 
 <template>
@@ -24,10 +27,10 @@ import '@/styles/tokens.css'
       <router-view />
     </main>
 
-    <footer class="site-footer">
-      <div class="footer-container">
-        <p>출처: 한국관광공사 TourAPI 4.0 · 공공누리 제3유형</p>
-        <p>© 2026 SSAFY TEAM PJT. All rights reserved.</p>
+    <footer v-if="route.name !== 'course'" class="site-footer">
+      <div class="container footer-inner">
+        <div class="source">출처: 한국관광공사 TourAPI 4.0 · 공공누리 제3유형</div>
+        <div class="copyright">© 2026 SSAFY TEAM PJT. All rights reserved.</div>
       </div>
     </footer>
   </div>

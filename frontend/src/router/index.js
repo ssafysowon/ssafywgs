@@ -8,11 +8,9 @@ const PostsEditView = () => import('@/views/PostsEditView.vue')
 const AboutView = () => import('@/views/AboutView.vue')
 
 const routes = [
-  { 
-    path: '/', 
-    name: 'Home', 
-    component: HomeView,
-  },
+	{ path: '/', name: 'Home', component: () => import('@/views/HomeView.vue') },
+	{ path: '/course', name: 'course', component: () => import('@/views/CourseView.vue') },
+	{ path: '/course/result', name: 'course-result', component: () => import('@/views/CourseResultView.vue') },
   { 
     path: '/posts', 
     name: 'Posts', 
