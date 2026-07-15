@@ -26,6 +26,7 @@ class PostCreate(BaseModel):
     title: str
     content: str
     password: str
+    time: str | None = None
     district: str | None = None
     companion: str | None = None
     place_ids: list[int]   # 순서대로 온 place id 배열
@@ -33,7 +34,10 @@ class PostCreate(BaseModel):
 class PostUpdate(BaseModel):
     title: str
     content: str
-    password: str          # 검증용
+    password: str
+    time: str | None = None
+    district: str | None = None
+    companion: str | None = None
     place_ids: list[int] | None = None
 
 class PostDeleteRequest(BaseModel):
@@ -42,6 +46,7 @@ class PostDeleteRequest(BaseModel):
 class PostListItem(BaseModel):
     id: int
     title: str
+    time: str | None = None
     district: str | None
     views: int
     created_at: datetime
@@ -53,6 +58,7 @@ class PostDetail(BaseModel):
     id: int
     title: str
     content: str
+    time: str | None = None
     district: str | None
     companion: str | None
     views: int
