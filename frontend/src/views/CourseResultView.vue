@@ -156,18 +156,29 @@ function submitInput () { sendChat(chatInput.value) }
 function quickAsk (q) { chatOpen.value = true; sendChat(q) }
 
 function goShareToPosts() {
-  console.log('공유할 companion:', answers.companion)
   router.push({
     path: '/posts/create',
     state: {
       prefill: {
-        district: answers.field,
-        companion: answers.companion,
         title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
         content: `${answers.time} 동안 ${answers.field}에서 ${answers.companion}와 함께 ${answers.concept} 코스 추천합니다.`,
         time: answers.time,
         district: answers.field,
-        companion: answers.companion
+        companion: answers.companion,
+        // 게시글 작성 화면의 지도에 그대로 꽂힐 코스 데이터
+        course: {
+          title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
+          totalTime: answers.time,
+          start: { name: START.name, lat: START.lat, lng: START.lng },
+          stops: STOPS.value.map(s => ({
+            name: s.name,
+            category: s.cat,
+            description: s.desc,
+            stay: s.stay,
+            lat: s.lat,
+            lng: s.lng
+          }))
+        }
       }
     }
   })
