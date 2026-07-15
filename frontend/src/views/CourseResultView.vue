@@ -30,6 +30,7 @@ function mapServerStopsToLocal(stops) {
 
 const router = useRouter()
 const courseTitle = ref('역삼 탈출 코스')
+const isLoading = ref(false)
 
 // 이전 페이지에서 router.push({ name, state:{ answers } }) 로 넘어온 값
 const incoming = (window?.history?.state?.answers) || {}
@@ -41,11 +42,7 @@ const answers = reactive({
 })
 
 const START = { name: 'SSAFY 역삼캠퍼스', lat: 37.5009, lng: 127.0369, start: true }
-const STOPS = ref([
-  { name:'선릉·정릉',    cat:'왕릉 산책', lat:37.5088, lng:127.0490, desc:'도심 속 왕릉 숲길. 조용히 걷기 좋아요.', stay:'20분' },
-  { name:'최인아책방',    cat:'독립서점',  lat:37.5045, lng:127.0405, desc:'책 향 가득한 아담한 서점.',           stay:'15분' },
-  { name:'테헤란로 커피', cat:'카페',      lat:37.5006, lng:127.0360, desc:'통창으로 거리가 보이는 로스터리.',   stay:'20분' },
-])
+const STOPS = ref([])
 
 let map = null
 let markers = []
@@ -146,6 +143,7 @@ function scrollChat () {
  *   return data.message
  */
 async function refineCourse (text) {
+  isLoading.value = true
   try {
     const coursePayload = {
       title: `역삼 ${answers.concept} 코스`,
@@ -155,6 +153,8 @@ async function refineCourse (text) {
     }
 
     const res = await postJson('/api/course/modify', { request: text, course: coursePayload })
+    console.log('modify res', res)
+
     if (res.course) {
       STOPS.value = mapServerStopsToLocal(res.course.stops)
       if (res.course.start) {
@@ -162,14 +162,17 @@ async function refineCourse (text) {
         START.lat = res.course.start.lat || START.lat
         START.lng = res.course.start.lng || START.lng
       }
-
       if (res.course.title) courseTitle.value = res.course.title
       if (res.course.totalTime) answers.time = res.course.totalTime
     }
+
     return res.message || '변경을 반영했습니다.'
   } catch (err) {
     console.error('modify 실패', err)
     return '변경 실패: 서버 오류'
+  } finally {
+    isLoading.value = false
+    drawMap()
   }
 }
 
@@ -211,6 +214,7 @@ function goShareToPosts() {
 
 onMounted(async () => {
   initMap()
+  isLoading.value = true
 
   try {
     const payload = {
@@ -222,6 +226,8 @@ onMounted(async () => {
 
     const res = await postJson('/api/course/generate', payload)
 
+    console.log('generate res', res)
+
     if (res.course) {
       STOPS.value = mapServerStopsToLocal(res.course.stops)
 
@@ -230,12 +236,11 @@ onMounted(async () => {
         START.lat = res.course.start.lat || START.lat
         START.lng = res.course.start.lng || START.lng
       }
-    }
-    
+
       if (res.course.title) courseTitle.value = res.course.title
       if (res.course.totalTime) answers.time = res.course.totalTime
+    }
 
-    // 기존 멘트 유지
     messages.value.push({
       who: 'bot',
       text: '코스를 짜뒀어요. 바꾸고 싶은 부분을 편하게 말해주세요 🙂'
@@ -247,10 +252,11 @@ onMounted(async () => {
       who: 'bot',
       text: '코스 생성에 실패했습니다.'
     })
+  } finally {
+    isLoading.value = false
+    drawMap()
+    nextTick(() => map && map.invalidateSize())
   }
-
-  drawMap()
-  nextTick(() => map && map.invalidateSize())
 })
 
 onBeforeUnmount(() => { if (map) { map.remove(); map = null } })
@@ -319,22 +325,30 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
           <div class="meta"><span>총 <b>약 {{ answers.time }}</b></span><span>장소 <b>{{ STOPS.length }}곳</b></span></div>
         </div>
         <div class="cards">
-          <div
-            v-for="(p, i) in STOPS" :key="p.name + i"
-            class="card" draggable="true"
-            @dragstart="dragFrom = i"
-            @dragover.prevent
-            @drop.prevent="onDrop(i)"
-            @mouseenter="() => { const mk = markers[i+1]; if (mk){ mk.openPopup(); pinHover(i+1, true) } }"
-            @mouseleave="() => { const mk = markers[i+1]; if (mk){ mk.closePopup(); pinHover(i+1, false) } }"
-          >
-            <div class="idx">{{ i + 1 }}</div>
-            <div class="body">
-              <div class="name-row"><span class="name">{{ p.name }}</span><span class="cat">{{ p.cat }}</span></div>
-              <div class="desc">{{ p.desc }}</div>
-              <div class="stay">머무름 <b>{{ p.stay }}</b></div>
+          <div v-if="isLoading" class="loader">코스를 생성 중입니다…</div>
+
+          <div v-else>
+            <div v-if="STOPS.length === 0" class="empty">코스가 아직 없습니다.</div>
+
+            <div v-else>
+              <div
+                v-for="(p, i) in STOPS" :key="p.name + i"
+                class="card" draggable="true"
+                @dragstart="dragFrom = i"
+                @dragover.prevent
+                @drop.prevent="onDrop(i)"
+                @mouseenter="() => { const mk = markers[i+1]; if (mk){ mk.openPopup(); pinHover(i+1, true) } }"
+                @mouseleave="() => { const mk = markers[i+1]; if (mk){ mk.closePopup(); pinHover(i+1, false) } }"
+              >
+                <div class="idx">{{ i + 1 }}</div>
+                <div class="body">
+                  <div class="name-row"><span class="name">{{ p.name }}</span><span class="cat">{{ p.cat }}</span></div>
+                  <div class="desc">{{ p.desc }}</div>
+                  <div class="stay">머무름 <b>{{ p.stay }}</b></div>
+                </div>
+                <div class="grip">⠿</div>
+              </div>
             </div>
-            <div class="grip">⠿</div>
           </div>
         </div>
       </aside>
@@ -505,4 +519,7 @@ nav{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:cen
   .nav-tags{display:none}
   .chat-panel{width:calc(100% - 32px);right:16px;bottom:16px}
 }
+
+.loader { padding: 32px; text-align: center; font-weight: 700; color: var(--ink-60); }
+.empty  { padding: 24px; text-align: center; color: var(--ink-40); }
 </style>
