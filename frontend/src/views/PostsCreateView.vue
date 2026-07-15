@@ -189,17 +189,15 @@ async function submitPost() {
     return
   }
 
+  console.log('selectedPlaces:', selectedPlaces.value)
+  
   const payload = {
     title: form.value.title,
     content: form.value.content,
     password: form.value.password,
     companion: form.value.companion,
     district: form.value.district,
-    places: selectedPlaces.value.map((place, index) => ({
-      place_id: place.place_id,
-      seq: index + 1,
-      note: place.note,
-    })),
+    place_ids: selectedPlaces.value.map((place) => place.place_id),
   }
 
   try {
@@ -211,9 +209,12 @@ async function submitPost() {
       body: JSON.stringify(payload),
     })
 
-    if (!response.ok) {
-      throw new Error('게시글 작성 실패')
-    }
+  if (!response.ok) {
+    const errorData = await response.json()
+    console.error('게시글 작성 실패 상세:', errorData)
+    alert(errorData.detail ? JSON.stringify(errorData.detail, null, 2) : '게시글 작성 실패')
+    return
+  }
 
     alert('게시글이 작성되었습니다.')
     router.push({ name: 'Posts' })
