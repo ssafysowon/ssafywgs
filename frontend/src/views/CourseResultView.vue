@@ -156,6 +156,7 @@ function submitInput () { sendChat(chatInput.value) }
 function quickAsk (q) { chatOpen.value = true; sendChat(q) }
 
 function goShareToPosts() {
+  console.log('공유할 companion:', answers.companion)
   router.push({
     path: '/posts/create',
     state: {
@@ -163,7 +164,10 @@ function goShareToPosts() {
         district: answers.field,
         companion: answers.companion,
         title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
-        content: `${answers.time} 동안 ${answers.field}에서 ${answers.companion}와 함께 ${answers.concept} 코스 추천합니다.`
+        content: `${answers.time} 동안 ${answers.field}에서 ${answers.companion}와 함께 ${answers.concept} 코스 추천합니다.`,
+        time: answers.time,
+        district: answers.field,
+        companion: answers.companion
       }
     }
   })
