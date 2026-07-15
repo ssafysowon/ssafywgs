@@ -38,7 +38,7 @@ function initMap () {
 
 function pinIcon (label, isStart) {
   return L.divIcon({
-    className: '', iconSize: [36, 46], iconAnchor: [18, 44], popupAnchor: [0, -42],
+    className: '', iconSize: [36, 46], iconAnchor: [3, 30], popupAnchor: [0, -42],
     html: `<div class="pin ${isStart ? 'start' : ''}"><div class="head"></div><div class="num">${label}</div></div>`
   })
 }
@@ -276,9 +276,10 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 /* 지면에 닿는 작은 그림자 점 — 핀이 떠 있는 느낌을 줌 */
 .pin::after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
   width:10px;height:4px;border-radius:50%;background:rgba(14,16,19,.25);filter:blur(1px)}
-.pin .head{width:32px;height:32px;border-radius:50% 50% 50% 4px;transform:rotate(45deg);
+.pin .head{width:32px;height:32px;border-radius:50% 50% 50% 4px;position:relative;
   background:var(--ink);border:2.5px solid #fff;
   transition:background .25s cubic-bezier(.22,.7,.2,1),transform .2s cubic-bezier(.22,.7,.2,1)}
+/* triangular pointer removed */
 .pin .num{position:absolute;top:5px;left:0;right:0;text-align:center;color:#fff;
   font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;line-height:20px;pointer-events:none}
 .pin.start .head{background:var(--route)}

@@ -123,21 +123,45 @@ function getShortContent(content) {
   if (content.length <= 54) return content
   return `${content.slice(0, 54)}...`
 }
+
+/* ------------------------------------------------------------------
+   카드 썸네일(미니맵) 전용 헬퍼
+   - 순수 표시용이며 fetch/pagination 등 기존 데이터 로직에는 관여하지 않음
+   - HomeView 의 지도 일러스트와 같은 톤(도로/블록/파크 + 브랜드 블루 루트)으로
+     카드 썸네일을 그리기 위한 좌표만 제공한다.
+------------------------------------------------------------------- */
+const MAP_POINTS = [
+  [30, 68],
+  [82, 24],
+  [132, 58],
+]
+
+function mapPoint(index) {
+  return MAP_POINTS[index] || MAP_POINTS[MAP_POINTS.length - 1]
+}
+
+function mapRoutePath(post) {
+  const count = Math.min(post.places?.length || 0, 3)
+  if (count < 2) return ''
+  return MAP_POINTS.slice(0, count)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p[0]} ${p[1]}`)
+    .join(' ')
+}
 </script>
 
 <template>
   <section class="post-list-page">
     <div class="page-head">
-  <div>
-    <h1>코스 게시판</h1>
-    <p>
-      멀티캠퍼스 역삼 주변과 서울 곳곳의 상황별 코스를 둘러보고,
-      나에게 맞는 코스를 찾아보세요.
-    </p>
-  </div>
-</div>
+      <div>
+        <h1>코스 게시판</h1>
+        <p>
+          멀티캠퍼스 역삼 주변과 서울 곳곳의 상황별 코스를 둘러보고,
+          나에게 맞는 코스를 찾아보세요.
+        </p>
+      </div>
+    </div>
 
-<section class="filter-card">
+    <section class="filter-card">
       <div class="search-area">
         <div class="search-box">
           <input
@@ -239,15 +263,68 @@ function getShortContent(content) {
             </div>
           </div>
 
-          <div class="mini-map">
-            <div class="mini-route">
-              <span
-                v-for="place in post.places.slice(0, 3)"
-                :key="place.seq"
+          <div class="card-media">
+            <svg
+              class="mini-map"
+              viewBox="0 0 160 96"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <defs>
+                <pattern id="mapGrid" width="18" height="18" patternUnits="userSpaceOnUse">
+                  <path d="M18 0H0V18" fill="none" stroke="var(--line)" stroke-width="1" />
+                </pattern>
+              </defs>
+
+              <rect width="160" height="96" rx="14" fill="var(--paper)" />
+              <rect width="160" height="96" rx="14" fill="url(#mapGrid)" opacity=".55" />
+
+              <g fill="var(--slab)">
+                <rect x="8" y="8" width="26" height="20" rx="4" />
+                <rect x="120" y="12" width="30" height="22" rx="4" />
+                <rect x="12" y="60" width="24" height="24" rx="4" />
+                <rect x="108" y="64" width="30" height="20" rx="4" />
+              </g>
+
+              <g fill="var(--park)">
+                <circle cx="60" cy="14" r="6" />
+                <circle cx="98" cy="82" r="7" />
+                <circle cx="16" cy="46" r="5" />
+              </g>
+
+              <path
+                :d="mapRoutePath(post)"
+                fill="none"
+                stroke="var(--route)"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                opacity=".9"
+              />
+
+              <g
+                v-for="(place, index) in post.places.slice(0, 3)"
+                :key="'pin-' + place.seq"
               >
-                {{ place.seq }}
-              </span>
-            </div>
+                <circle
+                  :cx="mapPoint(index)[0]"
+                  :cy="mapPoint(index)[1]"
+                  r="9.5"
+                  fill="var(--route)"
+                  stroke="#fff"
+                  stroke-width="2"
+                />
+                <text
+                  :x="mapPoint(index)[0]"
+                  :y="mapPoint(index)[1] + 3"
+                  text-anchor="middle"
+                  font-family="Archivo, Pretendard, sans-serif"
+                  font-size="9"
+                  font-weight="700"
+                  fill="#fff"
+                >{{ index + 1 }}</text>
+              </g>
+            </svg>
           </div>
         </div>
 
@@ -299,17 +376,21 @@ function getShortContent(content) {
         ›
       </button>
     </div>
-    </section>
+  </section>
 </template>
 
 <style scoped>
+/* 전역 토큰(--ink,--ink-60,--ink-30,--line,--line-strong,--route,--route-soft,
+   --paper,--slab,--ease)은 src/style.css :root 에 정의되어 있음.
+   이 컴포넌트에서는 미니맵 일러스트 전용 변수만 로컬로 둔다(HomeView와 동일 값). */
 .post-list-page {
-  --main-color: #034ea1;
+  --park: #E6F0E4;
+  --road: #DEE1E5;
   width: 100%;
   max-width: 1220px;
   margin: 0 auto;
   padding: 24px 24px 80px;
-  color: var(--ink, #111827);
+  color: var(--ink);
   box-sizing: border-box;
 }
 
@@ -324,6 +405,7 @@ function getShortContent(content) {
 .page-head h1 {
   margin: 0;
   color: var(--ink);
+  font-family: 'Archivo', 'Pretendard', sans-serif;
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -331,20 +413,17 @@ function getShortContent(content) {
 
 .page-head p {
   margin: 12px 0 0;
-  color: var(--ink);
+  color: var(--ink-60);
   font-size: 15px;
   line-height: 1.7;
-  opacity: 0.6;
 }
-
-/* write-button removed */
 
 .filter-card {
   padding: 20px;
-  border: 1px solid #dbe2ec;
+  border: 1px solid var(--line-strong);
   border-radius: 18px;
   background: var(--paper);
-  box-shadow: 0 18px 42px rgba(24, 42, 68, 0.05);
+  box-shadow: 0 14px 40px -24px rgba(14, 16, 19, 0.18);
 }
 
 .search-area {
@@ -357,10 +436,11 @@ function getShortContent(content) {
 .search-box {
   display: flex;
   height: 46px;
-  border: 1px solid #d8dee8;
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--paper);
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
 }
 
 .search-box input {
@@ -372,13 +452,18 @@ function getShortContent(content) {
   font-size: 14px;
   font-family: inherit;
   outline: none;
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: var(--ink-30);
 }
 
 .search-box button {
   width: 76px;
   border: 0;
   background: transparent;
-  color: var(--main-color);
+  color: var(--route);
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
@@ -403,20 +488,21 @@ function getShortContent(content) {
 .filter-group select {
   width: 118px;
   height: 46px;
-  border: 1px solid #d8dee8;
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: #fff;
+  background: var(--paper);
   color: var(--ink);
   font-size: 14px;
   font-family: inherit;
   padding: 0 12px;
   outline: none;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
 }
 
 .filter-group select:focus,
 .search-box:focus-within {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(3, 78, 161, 0.09);
+  border-color: var(--route);
+  box-shadow: 0 0 0 4px var(--route-soft);
 }
 
 .list-top {
@@ -436,25 +522,23 @@ function getShortContent(content) {
 .sort-label {
   display: flex;
   gap: 8px;
-  color: var(--ink);
+  color: var(--ink-60);
   font-size: 13px;
-  opacity: 0.75;
 }
 
 .sort-label strong {
   color: var(--ink);
-  opacity: 1;
+  font-weight: 700;
 }
 
 .loading-box,
 .empty-box {
   padding: 70px 24px;
-  border: 1px dashed #cbd4e1;
+  border: 1px dashed var(--line-strong);
   border-radius: 18px;
-  color: var(--ink);
+  color: var(--ink-60);
   font-size: 15px;
   text-align: center;
-  opacity: 0.6;
 }
 
 .post-grid {
@@ -466,23 +550,23 @@ function getShortContent(content) {
 
 .post-card {
   padding: 16px;
-  border: 1px solid #dbe2ec;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--paper);
   cursor: pointer;
-  transition: 0.18s ease;
-  box-shadow: 0 14px 34px rgba(24, 42, 68, 0.045);
+  transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+  box-shadow: 0 14px 34px -26px rgba(14, 16, 19, 0.3);
 }
 
 .post-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(3, 78, 161, 0.45);
-  box-shadow: 0 18px 38px rgba(3, 78, 161, 0.08);
+  border-color: var(--route);
+  box-shadow: 0 18px 40px -22px rgba(3, 78, 161, 0.28);
 }
 
 .card-main {
   display: grid;
-  grid-template-columns: 1fr 118px;
+  grid-template-columns: 1fr 130px;
   gap: 14px;
 }
 
@@ -507,18 +591,22 @@ function getShortContent(content) {
   height: 26px;
   border: 0;
   background: transparent;
-  color: #8a96a8;
+  color: var(--ink-30);
   font-size: 20px;
   cursor: pointer;
+  transition: color .2s var(--ease);
+}
+
+.star-button:hover {
+  color: var(--route);
 }
 
 .summary {
   min-height: 42px;
   margin: 10px 0 12px;
-  color: var(--ink);
+  color: var(--ink-60);
   font-size: 13px;
   line-height: 1.6;
-  opacity: 0.62;
 }
 
 .tag-row {
@@ -530,72 +618,29 @@ function getShortContent(content) {
 .tag-row span {
   padding: 5px 10px;
   border-radius: 999px;
-  background: #f1f4f8;
-  color: var(--ink);
+  background: var(--slab);
+  color: var(--ink-60);
   font-size: 12px;
   font-weight: 700;
-  opacity: 0.75;
+}
+
+.tag-row span:last-child {
+  background: var(--route-soft);
+  color: var(--route);
+}
+
+/* ── 카드 썸네일(미니맵) ─────────────────────────────────────── */
+.card-media {
+  flex: none;
 }
 
 .mini-map {
-  position: relative;
-  height: 88px;
-  border-radius: 13px;
-  background:
-    linear-gradient(135deg, rgba(3, 78, 161, 0.08), rgba(3, 78, 161, 0.02)),
-    repeating-linear-gradient(
-      45deg,
-      #eef3f8 0,
-      #eef3f8 8px,
-      #f8fafc 8px,
-      #f8fafc 16px
-    );
+  display: block;
+  width: 130px;
+  height: 96px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
   overflow: hidden;
-}
-
-.mini-map::before {
-  content: '';
-  position: absolute;
-  left: 18px;
-  top: 44px;
-  width: 78px;
-  height: 2px;
-  background: var(--main-color);
-  transform: rotate(-8deg);
-}
-
-.mini-route {
-  position: absolute;
-  inset: 0;
-}
-
-.mini-route span {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--main-color);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mini-route span:nth-child(1) {
-  left: 18px;
-  top: 45px;
-}
-
-.mini-route span:nth-child(2) {
-  left: 52px;
-  top: 28px;
-}
-
-.mini-route span:nth-child(3) {
-  right: 16px;
-  bottom: 18px;
 }
 
 .route-strip {
@@ -605,9 +650,9 @@ function getShortContent(content) {
   min-height: 42px;
   margin-top: 14px;
   padding: 9px 10px;
-  border: 1px solid #e2e7ef;
+  border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fbfcfe;
+  background: var(--slab);
   overflow: hidden;
 }
 
@@ -623,7 +668,7 @@ function getShortContent(content) {
   height: 20px;
   flex: 0 0 20px;
   border-radius: 50%;
-  background: var(--main-color);
+  background: var(--route);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
@@ -643,7 +688,7 @@ function getShortContent(content) {
 }
 
 .route-strip em {
-  color: #8a96a8;
+  color: var(--ink-30);
   font-style: normal;
   font-size: 12px;
 }
@@ -652,9 +697,8 @@ function getShortContent(content) {
   display: flex;
   gap: 18px;
   margin-top: 14px;
-  color: var(--ink);
+  color: var(--ink-30);
   font-size: 12px;
-  opacity: 0.58;
 }
 
 .pagination {
@@ -667,18 +711,24 @@ function getShortContent(content) {
 .pagination button {
   width: 36px;
   height: 36px;
-  border: 1px solid #d8dee8;
+  border: 1px solid var(--line-strong);
   border-radius: 9px;
-  background: #fff;
+  background: var(--paper);
   color: var(--ink);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: var(--route);
+  color: var(--route);
 }
 
 .pagination button.active {
-  border-color: var(--main-color);
-  background: var(--main-color);
+  border-color: var(--route);
+  background: var(--route);
   color: #fff;
 }
 
@@ -706,36 +756,29 @@ function getShortContent(content) {
     padding: 34px 14px 70px;
   }
 
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 28px;
-  text-align: left;
-}
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 28px;
+    text-align: left;
+  }
 
-.page-head h1 {
-  margin: 0;
-  color: var(--ink, #111827);
-  font-size: 40px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.04em;
-  text-align: left;
-}
+  .page-head h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+    text-align: left;
+  }
 
-.page-head p {
-  margin: 12px 0 0;
-  color: var(--ink, #111827);
-  font-size: 15px;
-  line-height: 1.7;
-  opacity: 0.6;
-  text-align: left;
-}
-
-  .write-button {
-    width: 100%;
+  .page-head p {
+    margin: 12px 0 0;
+    font-size: 15px;
+    line-height: 1.7;
+    text-align: left;
   }
 
   .post-grid {
@@ -746,8 +789,13 @@ function getShortContent(content) {
     grid-template-columns: 1fr;
   }
 
+  .card-media {
+    order: -1;
+  }
+
   .mini-map {
-    height: 100px;
+    width: 100%;
+    height: 120px;
   }
 
   .filter-group {
