@@ -13,6 +13,7 @@ const form = ref({
   title: '',
   content: '',
   password: '',
+  time: '',
   district: '',
   companion: '',
 })
@@ -99,6 +100,7 @@ async function fetchPost() {
 
     form.value.title = post.title
     form.value.content = post.content
+    form.value.time = post.time || ''
     form.value.district = post.district || '강남구'
     form.value.companion = post.companion || '친구'
 
@@ -173,6 +175,11 @@ async function submitEdit() {
     return
   }
 
+  if (!form.value.time.trim()) {
+    alert('시간을 입력해주세요.')
+    return
+  }
+
   if (!form.value.content.trim()) {
     alert('본문을 입력해주세요.')
     return
@@ -187,6 +194,7 @@ async function submitEdit() {
     title: form.value.title,
     content: form.value.content,
     password: form.value.password,
+    time: form.value.time,
     district: form.value.district,
     companion: form.value.companion,
     places: selectedPlaces.value.map((place, index) => ({
@@ -272,7 +280,16 @@ async function deletePost() {
             <input v-model="form.title" type="text" />
           </div>
 
-          <div class="row">
+          <div class="row three-columns">
+            <div class="field">
+              <label>시간 <span>*</span></label>
+              <input
+                v-model="form.time"
+                type="text"
+                placeholder="예: 2시간, 반나절, 오후 1시~4시"
+              />
+            </div>
+
             <div class="field">
               <label>주요 지역 <span>*</span></label>
               <select v-model="form.district">
@@ -406,6 +423,7 @@ async function deletePost() {
         <p>수정 내용이 반영된 게시글 미리보기입니다.</p>
 
         <div class="preview-tags">
+          <span>{{ form.time || '시간 미입력' }}</span>
           <span>{{ form.district }}</span>
           <span>{{ form.companion }}</span>
         </div>
@@ -413,6 +431,7 @@ async function deletePost() {
         <h3>{{ form.title }}</h3>
 
         <div class="preview-meta">
+          <span>{{ form.time || '시간 미입력' }}</span>
           <span>{{ form.companion }} 여행중</span>
           <span>조회 {{ 0 }}</span>
         </div>
@@ -517,7 +536,7 @@ async function deletePost() {
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 18px;
 }
 
@@ -876,10 +895,10 @@ async function deletePost() {
   }
 
   .row,
+  .three-columns,
   .place-grid {
     grid-template-columns: 1fr;
   }
-
   .selected-item {
     grid-template-columns: 24px 30px 1fr 30px;
   }

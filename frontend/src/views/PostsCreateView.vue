@@ -12,6 +12,7 @@ const form = ref({
   title: '',
   content: '',
   password: '',
+  time: '',
   district: '강남구',
   companion: '친구',
 })
@@ -174,6 +175,11 @@ async function submitPost() {
     return
   }
 
+  if (!form.value.time.trim()) {
+    alert('시간을 입력해주세요.')
+    return
+  }
+
   if (!form.value.content.trim()) {
     alert('본문을 입력해주세요.')
     return
@@ -190,16 +196,19 @@ async function submitPost() {
   }
 
   console.log('selectedPlaces:', selectedPlaces.value)
-  
+
   const payload = {
     title: form.value.title,
     content: form.value.content,
     password: form.value.password,
+    time: form.value.time,
     companion: form.value.companion,
     district: form.value.district,
     place_ids: selectedPlaces.value.map((place) => place.place_id),
   }
 
+  console.log('게시글 작성 payload:', payload)
+  
   try {
     const response = await fetch(`${API_BASE_URL}/api/posts`, {
       method: 'POST',
@@ -209,12 +218,12 @@ async function submitPost() {
       body: JSON.stringify(payload),
     })
 
-  if (!response.ok) {
-    const errorData = await response.json()
-    console.error('게시글 작성 실패 상세:', errorData)
-    alert(errorData.detail ? JSON.stringify(errorData.detail, null, 2) : '게시글 작성 실패')
-    return
-  }
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('게시글 작성 실패 상세:', errorData)
+      alert(errorData.detail ? JSON.stringify(errorData.detail, null, 2) : '게시글 작성 실패')
+      return
+    }
 
     alert('게시글이 작성되었습니다.')
     router.push({ name: 'Posts' })
@@ -250,7 +259,17 @@ async function submitPost() {
             />
           </div>
 
-          <div class="row">
+          <div class="row three-columns">
+            <div class="field">
+              <label for="time">시간</label>
+              <input
+                id="time"
+                v-model="form.time"
+                type="text"
+                placeholder="예: 2시간, 반나절, 오후 1시~4시"
+              />
+            </div>
+
             <div class="field">
               <label for="district">주요 지역</label>
               <select id="district" v-model="form.district">
@@ -409,6 +428,7 @@ async function submitPost() {
         </h3>
 
         <div class="preview-tags">
+          <span>⏱ {{ form.time || '시간 미입력' }}</span>
           <span>⌖ {{ form.district || '지역 미선택' }}</span>
           <span>♙ {{ form.companion || '동행 미선택' }}와 함께</span>
         </div>
@@ -527,6 +547,10 @@ async function submitPost() {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+.three-columns {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .field {
@@ -839,6 +863,7 @@ async function submitPost() {
 
 .preview-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 18px;
 }
@@ -954,7 +979,8 @@ async function submitPost() {
     font-size: 30px;
   }
 
-  .row {
+  .row,
+  .three-columns {
     grid-template-columns: 1fr;
   }
 

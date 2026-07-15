@@ -116,6 +116,7 @@ async function verifyPassword() {
     <div v-else class="detail-layout">
       <article class="detail-card">
         <div class="tag-row">
+          <span v-if="post.time">{{ post.time }}</span>
           <span v-if="post.district">{{ post.district }}</span>
           <span v-if="post.companion">{{ post.companion }}</span>
           <span>추천 코스</span>
