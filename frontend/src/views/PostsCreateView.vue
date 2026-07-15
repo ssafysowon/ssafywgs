@@ -16,8 +16,29 @@ const form = ref({
   password: '',
   time: '',
   district: '강남구',
-  companion: '친구',
+  companion: '혼자',
 })
+
+const districtOptions = ['강남구', '서초구', '송파구', '강동구', '관악구']
+const companionOptions = ['혼자', '싸피 친구', '부모님', '프로님/강사님과']
+
+const prefill = window.history.state?.prefill || {}
+
+console.log('받은 prefill:', prefill)
+console.log('받은 companion:', prefill.companion)
+console.log('companionOptions:', companionOptions)
+
+if (prefill.time) {
+  form.value.time = prefill.time
+}
+
+if (prefill.district) {
+  form.value.district = prefill.district
+}
+
+if (prefill.companion) {
+  form.value.companion = prefill.companion
+}
 
 // Apply prefill from navigation state (if coming from CourseResult)
 const incoming = (window?.history?.state?.prefill) || {}
@@ -31,8 +52,7 @@ const places = ref([])
 const selectedPlaces = ref([])
 const draggedIndex = ref(null)
 
-const districtOptions = ['강남구', '서초구', '송파구', '종로구', '중구', '마포구', '성동구']
-const companionOptions = ['혼자', '친구', '연인', '가족', '동료']
+
 
 const fallbackPlaces = [
   {

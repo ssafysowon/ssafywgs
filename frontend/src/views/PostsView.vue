@@ -18,8 +18,9 @@ const currentPage = ref(1)
 const pageSize = 6
 const loading = ref(false)
 
-const districtOptions = ['전체', '강남구', '서초구', '송파구', '종로구', '중구', '마포구', '성동구']
-const companionOptions = ['전체', '혼자', '친구', '연인', '가족', '동료']
+const districtOptions = ['전체', '강남구', '서초구', '송파구', '강동구', '관악구']
+const companionOptions = ['전체', '혼자', '싸피 친구', '부모님', '프로님/강사님과']
+
 const sortOptions = [
   { label: '최신순', value: 'latest' },
   { label: '조회순', value: 'views' },
