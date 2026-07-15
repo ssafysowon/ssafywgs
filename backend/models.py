@@ -1,6 +1,7 @@
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+import json
 
 from database import Base
 
@@ -17,6 +18,8 @@ class Post(Base):
     time = Column(String, nullable=True)
     companion = Column(String, nullable=True)  # 연인, 친구, 가족, 혼자
     district = Column(String, nullable=True)   # 강남구, 종로구 등
+
+    course_json = Column(Text, nullable=True)
 
     views = Column(Integer, nullable=False, default=0)
 

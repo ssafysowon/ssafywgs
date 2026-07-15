@@ -6,7 +6,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const API_BASE_URL = 'https://ssafyescape.onrender.com'
-
 const keyword = ref('')
 const selectedDistrict = ref('전체')
 const selectedCompanion = ref('전체')
@@ -125,6 +124,39 @@ function getShortContent(content) {
   return `${content.slice(0, 54)}...`
 }
 
+/*
+  카드 썸네일과 코스 요약은 새 저장 구조인 post.course.stops를 우선 사용한다.
+  예전 게시글처럼 post.course가 없는 경우에는 기존 post.places를 fallback으로 사용한다.
+*/
+function getCourseStops(post) {
+  if (post.course?.stops?.length) {
+    return post.course.stops
+  }
+
+  if (post.places?.length) {
+    return post.places.map((place) => ({
+      name: place.title,
+      title: place.title,
+      category: place.district || '',
+      description: place.addr1 || '',
+      stay: place.note || '',
+      lat: place.lat,
+      lng: place.lng,
+      seq: place.seq,
+    }))
+  }
+
+  return []
+}
+
+function getStopTitle(stop) {
+  return stop.name || stop.title || '장소명 없음'
+}
+
+function getPlaceCount(post) {
+  return getCourseStops(post).length || post.place_count || 0
+}
+
 /* ------------------------------------------------------------------
    카드 썸네일(미니맵) 전용 헬퍼
    - 순수 표시용이며 fetch/pagination 등 기존 데이터 로직에는 관여하지 않음
@@ -142,8 +174,9 @@ function mapPoint(index) {
 }
 
 function mapRoutePath(post) {
-  const count = Math.min(post.places?.length || 0, 3)
+  const count = Math.min(getCourseStops(post).length, 3)
   if (count < 2) return ''
+
   return MAP_POINTS.slice(0, count)
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p[0]} ${p[1]}`)
     .join(' ')
@@ -304,8 +337,8 @@ function mapRoutePath(post) {
               />
 
               <g
-                v-for="(place, index) in post.places.slice(0, 3)"
-                :key="'pin-' + place.seq"
+                v-for="(stop, index) in getCourseStops(post).slice(0, 3)"
+                :key="'pin-' + post.id + '-' + index"
               >
                 <circle
                   :cx="mapPoint(index)[0]"
@@ -323,29 +356,41 @@ function mapRoutePath(post) {
                   font-size="9"
                   font-weight="700"
                   fill="#fff"
-                >{{ index + 1 }}</text>
+                >
+                  {{ index + 1 }}
+                </text>
               </g>
             </svg>
           </div>
         </div>
 
-        <div class="route-strip">
+        <div
+          v-if="getCourseStops(post).length"
+          class="route-strip"
+        >
           <template
-            v-for="(place, index) in post.places.slice(0, 3)"
-            :key="place.seq"
+            v-for="(stop, index) in getCourseStops(post).slice(0, 3)"
+            :key="'route-' + post.id + '-' + index"
           >
             <div class="route-place">
               <span>{{ index + 1 }}</span>
-              <strong>{{ place.title }}</strong>
+              <strong>{{ getStopTitle(stop) }}</strong>
             </div>
-            <em v-if="index < post.places.slice(0, 3).length - 1">→</em>
+            <em v-if="index < getCourseStops(post).slice(0, 3).length - 1">→</em>
           </template>
+        </div>
+
+        <div
+          v-else
+          class="route-strip empty-route"
+        >
+          저장된 코스 정보가 없습니다.
         </div>
 
         <div class="card-footer">
           <span>조회 {{ post.views || 0 }}</span>
           <span>{{ post.created_at || '날짜 없음' }}</span>
-          <span>장소 {{ post.place_count || post.places.length }}개</span>
+          <span>장소 {{ getPlaceCount(post) }}개</span>
         </div>
       </article>
     </div>
@@ -630,7 +675,7 @@ function mapRoutePath(post) {
   color: var(--route);
 }
 
-/* ── 카드 썸네일(미니맵) ─────────────────────────────────────── */
+/* 카드 썸네일(미니맵) */
 .card-media {
   flex: none;
 }
@@ -655,6 +700,13 @@ function mapRoutePath(post) {
   border-radius: 11px;
   background: var(--slab);
   overflow: hidden;
+}
+
+.empty-route {
+  justify-content: center;
+  color: var(--ink-30);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .route-place {
