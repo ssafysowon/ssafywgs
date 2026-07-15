@@ -110,12 +110,10 @@ function goPostDetail(postId) {
 function getPostTags(post) {
   const tags = []
 
+  if (post.time) tags.push(post.time)
   if (post.district) tags.push(post.district)
   if (post.companion) tags.push(post.companion)
-  if (post.content?.includes('점심')) tags.push('점심시간')
-  else if (post.content?.includes('데이트')) tags.push('데이트')
-  else if (post.content?.includes('저녁')) tags.push('퇴근 후')
-  else tags.push('추천 코스')
+  tags.push('추천 코스')
 
   return tags
 }
