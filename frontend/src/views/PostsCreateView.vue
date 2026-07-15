@@ -31,8 +31,8 @@ const places = ref([])
 const selectedPlaces = ref([])
 const draggedIndex = ref(null)
 
-const districtOptions = ['강남구', '서초구', '송파구', '종로구', '중구', '마포구', '성동구']
-const companionOptions = ['혼자', '친구', '연인', '가족', '동료']
+const districtOptions = ['강남구', '서초구', '송파구', '강동구', '관악구']
+const companionOptions = ['혼자', '싸피 친구', '부모님', '프로님/강사님과']
 
 const fallbackPlaces = [
   {
