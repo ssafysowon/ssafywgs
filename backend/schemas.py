@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Any
 
 class PlaceOut(BaseModel):
     id: int
@@ -29,7 +30,8 @@ class PostCreate(BaseModel):
     time: str | None = None
     district: str | None = None
     companion: str | None = None
-    place_ids: list[int]   # 순서대로 온 place id 배열
+    place_ids: list[int] = []
+    course: dict[str, Any] | None = None
 
 class PostUpdate(BaseModel):
     title: str
@@ -38,7 +40,7 @@ class PostUpdate(BaseModel):
     time: str | None = None
     district: str | None = None
     companion: str | None = None
-    place_ids: list[int] | None = None
+    place_ids: list[int] = []
 
 class PostDeleteRequest(BaseModel):
     password: str
