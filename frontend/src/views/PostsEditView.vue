@@ -24,7 +24,7 @@ const searchKeyword = ref('')
 const draggedIndex = ref(null)
 
 const districtOptions = ['강남구', '서초구', '송파구', '강동구', '관악구']
-const companionOptions = ['혼자', '싸피 친구', '부모님', '프로님/강사님과']
+const companionOptions = ['혼자', '싸피 친구', '부모님', '프로님/강사님']
 
 const filteredPlaces = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase()
