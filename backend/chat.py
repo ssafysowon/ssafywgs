@@ -146,15 +146,12 @@ def generate_course(payload: dict = Body(...), db: Session = Depends(get_db)):
 
     course = parsed.get("course", {})
     course["stops"] = stops_out
-    # 항상 고정 start 사용
     course["start"] = START_POINT
 
     message_text = parsed.get("message") or "요청하신 코스를 생성했습니다."
-    debug = {"model_raw": model_text}
-    if invalid_ids:
-        debug["invalid_ids"] = invalid_ids
+    logger.debug("AI raw response: %s", model_text)
 
-    return {"message": message_text, "course": course, "debug": debug}
+    return {"message": message_text, "course": course}
 
 @router.post("/api/course/modify")
 def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
@@ -278,10 +275,6 @@ def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
     course_out["start"] = START_POINT
 
     message_text = parsed.get("message") or f"요청 '{request_text}'이(가) 반영된 코스입니다."
-    debug = {"model_raw": model_text}
-    if added_ids:
-        debug["added_ids"] = added_ids
-    if invalid_ids:
-        debug["invalid_ids"] = invalid_ids
+    logger.debug("AI raw response: %s", model_text)
 
-    return {"message": message_text, "course": course_out, "debug": debug}
+    return {"message": message_text, "course": course_out}
