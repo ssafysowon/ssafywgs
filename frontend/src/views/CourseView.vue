@@ -39,7 +39,7 @@ const STEPS = [
       { ico: '🧍', label: '혼자', value: '혼자' },
       { ico: '💻', label: '싸피 친구', value: '싸피 친구' },
       { ico: '👪', label: '부모님', value: '부모님' },
-      { ico: '🎓', label: '프로님/강사님과', value: '프로님/강사님' }
+      { ico: '🎓', label: '프로님/강사님', value: '프로님/강사님' }
     ]
   },
   {
