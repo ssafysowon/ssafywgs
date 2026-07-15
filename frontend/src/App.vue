@@ -4,23 +4,6 @@ import '@/styles/tokens.css'
 
 <template>
   <div id="app">
-    <header class="site-header">
-      <div class="container">
-        <div class="brand">
-          <router-link to="/">LocalHub</router-link>
-        </div>
-
-        <nav class="nav-right">
-          <div class="nav-links">
-            <router-link to="/course">코스 만들기</router-link>
-            <router-link to="/posts">게시판</router-link>
-            <router-link to="/about">소개</router-link>
-          </div>
-          <div class="pill">서울</div>
-        </nav>
-      </div>
-    </header>
-
     <main>
       <router-view />
     </main>
