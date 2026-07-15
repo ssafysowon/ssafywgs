@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import or_
 
 import models
 from database import get_db
@@ -102,28 +103,87 @@ def get_place_detail(
     }
 
 
-@app.get("/api/posts", response_model=list[schemas.PostListItem])
-def list_posts(district: str | None = None, page: int = 1, size: int = 10, db: Session = Depends(get_db)):
-    q = db.query(models.Post)
-    if district:
-        q = q.filter(models.Post.district == district)
-    q = q.order_by(models.Post.created_at.desc())
-    offset = (page - 1) * size
-    posts = q.offset(offset).limit(size).all()
+@app.get("/api/posts")
+def get_posts(
+    keyword: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    companion: str | None = Query(default=None),
+    sort: str = Query(default="latest"),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=6, ge=1, le=30),
+    db: Session = Depends(get_db),
+):
+    query = (
+        db.query(models.Post)
+        .options(
+            joinedload(models.Post.places).joinedload(models.PostPlace.place)
+        )
+    )
 
-    results = []
-    for p in posts:
-        results.append(
-            schemas.PostListItem(
-                id=p.id,
-                title=p.title,
-                district=p.district,
-                views=p.views,
-                created_at=p.created_at,
-                has_course=(len(p.places) > 0),
+    if keyword:
+        query = query.filter(
+            or_(
+                models.Post.title.contains(keyword),
+                models.Post.content.contains(keyword),
             )
         )
-    return results
+
+    if district and district != "전체":
+        query = query.filter(models.Post.district == district)
+
+    if companion and companion != "전체":
+        query = query.filter(models.Post.companion == companion)
+
+    total = query.count()
+
+    if sort == "views":
+        query = query.order_by(models.Post.views.desc(), models.Post.id.desc())
+    else:
+        query = query.order_by(models.Post.id.desc())
+
+    posts = (
+        query
+        .offset((page - 1) * size)
+        .limit(size)
+        .all()
+    )
+
+    result = []
+
+    for post in posts:
+        ordered_places = sorted(post.places, key=lambda item: item.seq)
+
+        result.append({
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "district": post.district,
+            "companion": post.companion,
+            "views": post.views,
+            "created_at": post.created_at.strftime("%Y.%m.%d") if post.created_at else "",
+            "place_count": len(ordered_places),
+            "places": [
+                {
+                    "id": item.place.id,
+                    "seq": item.seq,
+                    "title": item.place.title,
+                    "addr1": item.place.addr1,
+                    "note": item.note,
+                    "lat": item.place.lat,
+                    "lng": item.place.lng,
+                    "image": item.place.image,
+                }
+                for item in ordered_places
+                if item.place
+            ],
+        })
+
+    return {
+        "total": total,
+        "page": page,
+        "size": size,
+        "items": result,
+    }
 
 
 @app.get("/api/posts/{post_id}", response_model=schemas.PostDetail)
