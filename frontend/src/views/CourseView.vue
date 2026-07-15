@@ -109,22 +109,35 @@ onMounted(() => {
 
 <template>
   <div>
-    <nav id="nav">
-      <div class="wrap nav-in">
-        <router-link to="/" class="logo"><span class="dot"></span>LocalHub</router-link>
-        <div class="seg">
-          <div class="seg-track">
-            <span class="seg-fill" :style="{ width: fillWidth }"></span>
-            <span
-              v-for="(d, i) in STEPS" :key="i"
-              class="seg-dot"
-              :class="{ done: i < step || isDone, active: !isDone && i === step }"
-            ></span>
+    <div class="site-header">
+      <nav>
+        <div class="wrap nav-in">
+          <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
+          <ul class="nav-links">
+            <li><router-link to="/course" class="here">코스 만들기</router-link></li>
+            <li><router-link to="/posts">공유 게시판</router-link></li>
+            <li><router-link to="/about">소개</router-link></li>
+          </ul>
+          <span class="nav-spacer" aria-hidden="true"></span>
+        </div>
+      </nav>
+
+      <div class="step-bar">
+        <div class="wrap step-bar-in">
+          <div class="seg">
+            <div class="seg-track">
+              <span class="seg-fill" :style="{ width: fillWidth }"></span>
+              <span
+                v-for="(d, i) in STEPS" :key="i"
+                class="seg-dot"
+                :class="{ done: i < step || isDone, active: !isDone && i === step }"
+              ></span>
+            </div>
+            <span class="seg-count">STEP <b>{{ String(Math.min(step + 1, STEPS.length)).padStart(2, '0') }}</b> / {{ STEPS.length }}</span>
           </div>
-          <span class="seg-count">STEP <b>{{ String(Math.min(step + 1, STEPS.length)).padStart(2, '0') }}</b> / {{ STEPS.length }}</span>
         </div>
       </div>
-    </nav>
+    </div>
 
     <main>
       <div class="chat">
@@ -193,9 +206,23 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.wrap.nav-in{max-width:1240px;margin:0 auto;padding:0 24px;height:66px;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);font-family:'Archivo',sans-serif;font-weight:800;letter-spacing:-.03em;font-size:19px}
+.site-header{position:fixed;top:0;left:0;right:0;z-index:60;background:#fff}
+
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+nav{height:64px;border-bottom:1px solid var(--line);background:#fff}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);
+  font-family:'Archivo',sans-serif;font-weight:800;letter-spacing:-.03em;font-size:19px}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
+.nav-links{display:flex;gap:30px;list-style:none}
+.nav-spacer{width:110px}
+.nav-links a{color:var(--ink-60);text-decoration:none;font-size:14px;font-weight:500;position:relative;padding:4px 0}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--ink);transition:width .3s var(--ease)}
+.nav-links a:hover::after,.nav-links a.here::after{width:100%}
+.nav-links a.here{color:var(--ink)}
+
+.step-bar{border-bottom:1px solid var(--line);background:#fff}
+.wrap.step-bar-in{max-width:1240px;margin:0 auto;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:center}
 .seg{display:flex;align-items:center;gap:14px}
 .seg-track{display:flex;align-items:center;position:relative;height:14px}
 .seg-track::before{content:"";position:absolute;left:5px;right:5px;top:50%;height:1px;transform:translateY(-50%);background:var(--line-strong)}
@@ -208,6 +235,7 @@ onMounted(() => {
 .seg-count{font-family:'Archivo',sans-serif;font-size:11px;color:var(--ink-30);font-weight:600;letter-spacing:.14em}
 .seg-count b{color:var(--ink);font-weight:700}
 
+main{padding-top:116px}
 .chat{max-width:720px;margin:0 auto;padding:40px 24px 220px;display:flex;flex-direction:column;gap:22px}
 .row{display:flex;animation:pop .55s var(--ease) backwards}
 @keyframes pop{from{opacity:0;transform:translateY(16px)}}

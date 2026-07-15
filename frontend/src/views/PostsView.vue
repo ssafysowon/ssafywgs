@@ -154,12 +154,16 @@ function mapRoutePath(post) {
   <section class="post-list-page">
     <div class="page-head">
       <div>
+        <div class="kicker">Community · LocalHub</div>
         <h1>코스 게시판</h1>
         <p>
           멀티캠퍼스 역삼 주변과 서울 곳곳의 상황별 코스를 둘러보고,
           나에게 맞는 코스를 찾아보세요.
         </p>
       </div>
+      <button type="button" class="btn-solid" @click="goCreatePage">
+        코스 공유하기 <span class="arrow">→</span>
+      </button>
     </div>
 
     <section class="filter-card">
@@ -171,7 +175,7 @@ function mapRoutePath(post) {
             placeholder="제목, 장소명, 키워드로 검색"
             @keyup.enter="searchPosts"
           />
-          <button type="button" @click="searchPosts">검색</button>
+          <button type="button" @click="searchPosts">검색<span class="arrow">→</span></button>
         </div>
 
         <div class="filter-group">
@@ -245,9 +249,6 @@ function mapRoutePath(post) {
           <div class="card-text">
             <div class="card-title-row">
               <h2>{{ post.title }}</h2>
-              <button type="button" class="star-button" @click.stop>
-                ☆
-              </button>
             </div>
 
             <p class="summary">
@@ -280,7 +281,7 @@ function mapRoutePath(post) {
               <rect width="160" height="96" rx="14" fill="var(--paper)" />
               <rect width="160" height="96" rx="14" fill="url(#mapGrid)" opacity=".55" />
 
-              <g fill="var(--slab)">
+              <g fill="var(--block)">
                 <rect x="8" y="8" width="26" height="20" rx="4" />
                 <rect x="120" y="12" width="30" height="22" rx="4" />
                 <rect x="12" y="60" width="24" height="24" rx="4" />
@@ -338,14 +339,18 @@ function mapRoutePath(post) {
               <span>{{ index + 1 }}</span>
               <strong>{{ place.title }}</strong>
             </div>
-            <em v-if="index < post.places.slice(0, 3).length - 1">→</em>
+            <span
+              v-if="index < post.places.slice(0, 3).length - 1"
+              class="route-seg"
+              aria-hidden="true"
+            ></span>
           </template>
         </div>
 
         <div class="card-footer">
-          <span>조회 {{ post.views || 0 }}</span>
+          <span>조회 <b>{{ post.views || 0 }}</b></span>
           <span>{{ post.created_at || '날짜 없음' }}</span>
-          <span>장소 {{ post.place_count || post.places.length }}개</span>
+          <span>장소 <b>{{ post.place_count || post.places.length }}개</b></span>
         </div>
       </article>
     </div>
@@ -387,6 +392,7 @@ function mapRoutePath(post) {
 .post-list-page {
   --park: #E6F0E4;
   --road: #DEE1E5;
+  --block: #E8EAEE;
   width: 100%;
   max-width: 1220px;
   margin: 0 auto;
@@ -398,9 +404,21 @@ function mapRoutePath(post) {
 .page-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.kicker {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--route);
+  font-weight: 600;
+  margin-bottom: 12px;
 }
 
 .page-head h1 {
@@ -413,18 +431,51 @@ function mapRoutePath(post) {
 }
 
 .page-head p {
+  max-width: 520px;
   margin: 12px 0 0;
   color: var(--ink-60);
   font-size: 15px;
   line-height: 1.7;
 }
 
+.btn-solid {
+  flex: none;
+  height: 50px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  transition: background .25s var(--ease), transform .25s var(--ease), box-shadow .3s var(--ease);
+}
+
+.btn-solid:hover {
+  background: var(--route);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -16px rgba(14, 16, 19, .35);
+}
+
+.btn-solid .arrow {
+  transition: transform .3s var(--ease);
+}
+
+.btn-solid:hover .arrow {
+  transform: translateX(4px);
+}
+
 .filter-card {
-  padding: 20px;
-  border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  background: var(--paper);
-  box-shadow: 0 14px 40px -24px rgba(14, 16, 19, 0.18);
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 14px 40px -26px rgba(14, 16, 19, 0.16);
 }
 
 .search-area {
@@ -436,9 +487,9 @@ function mapRoutePath(post) {
 
 .search-box {
   display: flex;
-  height: 46px;
+  height: 48px;
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--paper);
   transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
@@ -461,13 +512,34 @@ function mapRoutePath(post) {
 }
 
 .search-box button {
-  width: 76px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 6px 6px 0;
+  padding: 0 18px;
   border: 0;
-  background: transparent;
-  color: var(--route);
-  font-size: 13px;
-  font-weight: 800;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
+  transition: background .2s var(--ease), transform .2s var(--ease);
+}
+
+.search-box button:hover {
+  background: var(--route);
+  transform: translateY(-1px);
+}
+
+.search-box button .arrow {
+  font-size: 13px;
+  transition: transform .2s var(--ease);
+}
+
+.search-box button:hover .arrow {
+  transform: translateX(3px);
 }
 
 .filter-group {
@@ -480,8 +552,11 @@ function mapRoutePath(post) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--ink);
-  font-size: 13px;
+  color: var(--ink-30);
+  font-family: 'Archivo', sans-serif;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -491,13 +566,20 @@ function mapRoutePath(post) {
   height: 46px;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: var(--paper);
+  background: #fff;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
   font-family: inherit;
   padding: 0 12px;
   outline: none;
-  transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+  cursor: pointer;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease), color .2s var(--ease);
+}
+
+.filter-group select:hover {
+  border-color: var(--route);
+  color: var(--route);
 }
 
 .filter-group select:focus,
@@ -510,7 +592,7 @@ function mapRoutePath(post) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 24px 2px 16px;
+  margin: 28px 2px 16px;
 }
 
 .list-top p {
@@ -518,27 +600,39 @@ function mapRoutePath(post) {
   color: var(--ink);
   font-size: 14px;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .sort-label {
   display: flex;
+  align-items: center;
   gap: 8px;
-  color: var(--ink-60);
-  font-size: 13px;
+  color: var(--ink-30);
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .sort-label strong {
   color: var(--ink);
+  font-family: 'Pretendard', sans-serif;
+  font-size: 13px;
   font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
 }
 
 .loading-box,
 .empty-box {
-  padding: 70px 24px;
+  padding: 76px 24px;
   border: 1px dashed var(--line-strong);
-  border-radius: 18px;
+  border-radius: 20px;
+  background: var(--block);
   color: var(--ink-60);
   font-size: 15px;
+  font-weight: 500;
   text-align: center;
 }
 
@@ -550,19 +644,38 @@ function mapRoutePath(post) {
 }
 
 .post-card {
-  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
+  border-radius: 20px;
+  background: #fff;
   cursor: pointer;
-  transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
-  box-shadow: 0 14px 34px -26px rgba(14, 16, 19, 0.3);
+  transition: transform .2s var(--ease), border-color .2s var(--ease), box-shadow .25s var(--ease);
+  box-shadow: 0 10px 26px -22px rgba(14, 16, 19, 0.22);
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--route);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s var(--ease);
 }
 
 .post-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--route);
-  box-shadow: 0 18px 40px -22px rgba(3, 78, 161, 0.28);
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  box-shadow: 0 18px 36px -20px rgba(14, 16, 19, 0.24);
+}
+
+.post-card:hover::before {
+  transform: scaleX(1);
 }
 
 .card-main {
@@ -574,7 +687,6 @@ function mapRoutePath(post) {
 .card-title-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
 }
 
 .card-title-row h2 {
@@ -585,21 +697,6 @@ function mapRoutePath(post) {
   font-weight: 800;
   line-height: 1.38;
   letter-spacing: -0.025em;
-}
-
-.star-button {
-  width: 26px;
-  height: 26px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-30);
-  font-size: 20px;
-  cursor: pointer;
-  transition: color .2s var(--ease);
-}
-
-.star-button:hover {
-  color: var(--route);
 }
 
 .summary {
@@ -617,17 +714,20 @@ function mapRoutePath(post) {
 }
 
 .tag-row span {
-  padding: 5px 10px;
+  padding: 5px 11px;
   border-radius: 999px;
-  background: var(--slab);
+  border: 1px solid var(--line-strong);
+  background: #fff;
   color: var(--ink-60);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .tag-row span:last-child {
-  background: var(--route-soft);
-  color: var(--route);
+  border-color: var(--route);
+  background: var(--route);
+  color: #fff;
 }
 
 /* ── 카드 썸네일(미니맵) ─────────────────────────────────────── */
@@ -647,20 +747,20 @@ function mapRoutePath(post) {
 .route-strip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-height: 42px;
   margin-top: 14px;
-  padding: 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  background: var(--slab);
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  background: #fff;
   overflow: hidden;
 }
 
 .route-place {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -671,6 +771,7 @@ function mapRoutePath(post) {
   border-radius: 50%;
   background: var(--route);
   color: #fff;
+  font-family: 'Archivo', sans-serif;
   font-size: 10px;
   font-weight: 800;
   display: flex;
@@ -682,49 +783,73 @@ function mapRoutePath(post) {
   max-width: 92px;
   color: var(--ink);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.route-strip em {
-  color: var(--ink-30);
-  font-style: normal;
-  font-size: 12px;
+.route-seg {
+  flex: none;
+  width: 18px;
+  height: 0;
+  border-top: 1.5px dashed var(--line-strong);
 }
 
 .card-footer {
   display: flex;
-  gap: 18px;
+  align-items: center;
+  gap: 10px;
   margin-top: 14px;
   color: var(--ink-30);
   font-size: 12px;
+}
+
+.card-footer span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-footer span:not(:last-child)::after {
+  content: '';
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.card-footer b {
+  color: var(--ink-60);
+  font-weight: 700;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 28px;
+  margin-top: 32px;
 }
 
 .pagination button {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--line-strong);
-  border-radius: 9px;
-  background: var(--paper);
+  border-radius: 10px;
+  background: #fff;
   color: var(--ink);
-  font-size: 14px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+  transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);
 }
 
-.pagination button:hover:not(:disabled) {
+.pagination button:hover:not(:disabled):not(.active) {
   border-color: var(--route);
   color: var(--route);
+  transform: translateY(-1px);
 }
 
 .pagination button.active {
@@ -758,12 +883,16 @@ function mapRoutePath(post) {
   }
 
   .page-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 28px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 26px;
+    padding-bottom: 22px;
     text-align: left;
+  }
+
+  .page-head .btn-solid {
+    justify-content: center;
   }
 
   .page-head h1 {

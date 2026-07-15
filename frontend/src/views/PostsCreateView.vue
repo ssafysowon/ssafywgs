@@ -182,7 +182,7 @@ async function submitPost () {
         <section class="card">
           <div class="course-title-row">
             <h2>선택한 코스</h2>
-            <p>{{ courseData.title }} · {{ courseData.totalTime }}</p>
+            <p>{{ courseData.title }}</p>
           </div>
 
           <div id="postCourseMap" class="course-map"></div>
