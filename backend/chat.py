@@ -40,6 +40,13 @@ def _safe_parse_json(text: str):
                 return None
         return None
 
+def _strip_ids_from_message(msg: str):
+    if not msg:
+        return msg
+    # 괄호 안의 순수 숫자 패턴 제거: "석촌호수(7)" → "석촌호수"
+    out = re.sub(r'\(\s*\d+\s*\)', '', msg)
+    out = re.sub(r'\s{2,}', ' ', out).strip()
+    return out
 
 def _extract_ids_and_notes(raw_places):
     ids = []
@@ -146,15 +153,14 @@ def generate_course(payload: dict = Body(...), db: Session = Depends(get_db)):
 
     course = parsed.get("course", {})
     course["stops"] = stops_out
-    # 항상 고정 start 사용
     course["start"] = START_POINT
 
-    message_text = parsed.get("message") or "요청하신 코스를 생성했습니다."
-    debug = {"model_raw": model_text}
-    if invalid_ids:
-        debug["invalid_ids"] = invalid_ids
+    message_text = _strip_ids_from_message(parsed.get("message", "") or "")
+    if not message_text:
+        message_text = "요청하신 코스를 생성했습니다."
+    logger.debug("AI raw response: %s", model_text)
 
-    return {"message": message_text, "course": course, "debug": debug}
+    return {"message": message_text, "course": course}
 
 @router.post("/api/course/modify")
 def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
@@ -264,6 +270,7 @@ def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
         })
 
     course_out = parsed.get("course", {})
+    course_out["stops"] = new_stops
     # preserve start if model omitted it
     if not course_out.get("start"):
         if course.get("start"):
@@ -277,11 +284,9 @@ def modify_course(payload: dict = Body(...), db: Session = Depends(get_db)):
     # 항상 고정 start 사용
     course_out["start"] = START_POINT
 
-    message_text = parsed.get("message") or f"요청 '{request_text}'이(가) 반영된 코스입니다."
-    debug = {"model_raw": model_text}
-    if added_ids:
-        debug["added_ids"] = added_ids
-    if invalid_ids:
-        debug["invalid_ids"] = invalid_ids
+    message_text = _strip_ids_from_message(parsed.get("message", "") or "")
+    if not message_text:
+        message_text = f"요청 '{request_text}'이(가) 반영된 코스입니다."
+    logger.debug("AI raw response: %s", model_text)
 
-    return {"message": message_text, "course": course_out, "debug": debug}
+    return {"message": message_text, "course": course_out}
