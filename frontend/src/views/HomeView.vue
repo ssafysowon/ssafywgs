@@ -71,12 +71,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
+  <div class="home">
     <nav id="nav">
       <div class="wrap nav-in">
         <a href="#" class="logo"><span class="dot"></span>LocalHub</a>
         <ul class="nav-links">
-          <li><a href="#">코스 만들기</a></li>
+          <li><router-link to="/course">코스 만들기</router-link></li>
           <li><a href="#">공유 게시판</a></li>
           <li><a href="#">소개</a></li>
         </ul>
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
         </p>
 
         <div class="cta rv d5">
-          <a href="#" class="btn">체험하기 <span class="arrow">→</span></a>
+          <router-link to="/course" class="btn">체험하기 <span class="arrow">→</span></router-link>
           <a href="#" class="btn ghost">공유된 코스 보기</a>
         </div>
 
@@ -212,31 +212,7 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <footer>
-      <div class="wrap">
-        <div class="foot-top">
-          <p class="foot-title">지금 이 시간,<br>당신도 당장 떠날 계획을 세울 수 있습니다!</p>
-          <div class="foot-cols">
-            <div>
-              <h4>Service</h4>
-              <a href="#">코스 만들기</a>
-              <a href="#">공유 게시판</a>
-              <a href="#">이번 주 인기</a>
-            </div>
-            <div>
-              <h4>Team</h4>
-              <a href="#">프로젝트 소개</a>
-              <a href="#">깃허브</a>
-              <a href="#">문의하기</a>
-            </div>
-          </div>
-        </div>
-        <div class="foot-bottom">
-          <span class="src">출처: 한국관광공사 TourAPI 4.0 · 공공누리 제3유형</span>
-          <span>© 2026 SSAFY TEAM PJT. All rights reserved.</span>
-        </div>
-      </div>
-    </footer>
+    <!-- footer removed for this page -->
   </div>
 </template>
 
@@ -244,17 +220,14 @@ onBeforeUnmount(() => {
 @import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,800;1,800&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
-:root{
-    --ink:#0E1013;
-    --ink-60:#5A6069;
-    --ink-30:#9AA1A9;
-    --line:#E7E9EC;
-    --paper:#FFFFFF;
-    --slab:#F3F4F6;
+/* 공통 변수(--ink,--route,--line,--slab,--paper,--ease)는 전역 style.css :root 에 있음.
+     여기서는 이 컴포넌트에서만 쓰는 지도 전용 변수만 둔다. */
+  .home{
     --park:#E6F0E4;
-    --route:#034ea1;
     --road:#DEE1E5;
-    --ease:cubic-bezier(.22,.7,.2,1);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -312,7 +285,7 @@ onBeforeUnmount(() => {
   .btn.ghost:hover{border-color:var(--ink);box-shadow:none}
   .btn.sm{height:38px;padding:0 16px;font-size:13px}
 
-  header{padding:150px 0 0;text-align:center;position:relative}
+  header{padding:150px 0 0;text-align:center;position:relative;flex:1}
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     font-family:'Archivo',sans-serif;font-size:11px;font-weight:600;
