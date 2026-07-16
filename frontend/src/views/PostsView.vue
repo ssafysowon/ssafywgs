@@ -476,7 +476,7 @@ function mapRoutePath(post) {
 }
 
 .page-head p {
-  max-width: 520px;
+  max-width: 760px;
   margin: 12px 0 0;
   color: var(--ink-60);
   font-size: 15px;
