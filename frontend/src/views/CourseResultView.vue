@@ -417,15 +417,6 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 <style>
 /* body 기본 마진(브라우저 default ~8px)이 남아있으면 .page{height:100vh;overflow:hidden}이 있어도
    문서(body) 자체가 그만큼 스크롤돼버림. 전역으로 한 번만 리셋. */
-html,
-body,
-#app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
 
 *,
 *::before,
@@ -474,11 +465,9 @@ body,
 .page {
   width: 100%;
   height: 100dvh;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  font-family: 'Pretendard', 'Archivo', sans-serif;
-  color: var(--ink);
-  background: var(--paper);
-  -webkit-font-smoothing: antialiased;
 }
 
 /* NAV + COURSE-BAR: 함께 고정되는 헤더 스택 (다른 화면과 동일하게 fixed 유지) */
