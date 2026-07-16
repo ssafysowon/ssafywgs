@@ -194,9 +194,6 @@ function mapRoutePath(post) {
           나에게 맞는 코스를 찾아보세요.
         </p>
       </div>
-      <button type="button" class="btn-solid" @click="goCreatePage">
-        코스 공유하기 <span class="arrow">→</span>
-      </button>
     </div>
 
     <section class="filter-card">
