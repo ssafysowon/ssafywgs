@@ -6,15 +6,19 @@ import L from 'leaflet'
 export const API_BASE_URL = 'https://ssafyescape.onrender.com'
 
 async function postJson(path, payload) {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8'
+    },
     body: JSON.stringify(payload)
   })
+
   if (!res.ok) {
     const txt = await res.text().catch(() => res.statusText)
     throw new Error(txt || res.statusText)
   }
+
   return res.json()
 }
 
