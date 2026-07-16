@@ -6,23 +6,23 @@ const router = useRouter()
 
 // ── 만든 사람들: 실제 팀원 정보로 바꿔 넣으세요 ───────────────
 const MAKERS = [
-  { name: '소원', role: 'won' },
-  { name: '정슬기', role: 'seul' },
-  { name: '박규은', role: 'gyu' },
+  { name: '소원', role: 'SNAKE' },
+  { name: '정슬기', role: 'DRAGON' },
+  { name: '박규은', role: 'HORSE' },
 ]
 
 // 코스 만들기 흐름(실제 4문항 + 결과) — 순서가 정보이므로 번호를 붙임
 const STEPS = [
   { n: '01', t: '네 가지 질문에 답하기', d: '남은 시간, 어느 구, 누구와, 어떤 무드. 칩을 누르거나 직접 적어도 돼요.' },
-  { n: '02', t: 'AI가 동선을 짜기', d: '역삼에서 걸어갈 수 있는 장소만 골라, 순서와 머무는 시간까지 정리해요.' },
-  { n: '03', t: '지도에서 확인하고 다듬기', d: '마음에 안 드는 곳은 “더 조용하게”처럼 말로 바꾸면 바로 반영돼요.' },
-  { n: '04', t: '게시판에 공유하기', d: '완성한 코스를 올리면, 다른 사람도 그대로 지도에 불러와 걸을 수 있어요.' },
+  { n: '02', t: 'AI가 동선을 짜기', d: '역삼에서 갈 수 있는 장소들을 골라, 당신의 한계를 시험합니다.' },
+  { n: '03', t: '지도에서 확인하고 다듬기', d: '못하겠다면 수정하세요. AI에게 요구사항을 말하면 바로 반영돼요.' },
+  { n: '04', t: '게시판에 공유하기', d: '다른 사람에게 이 멋진 탈출계획을 공유하세요!' },
 ]
 
 const VALUES = [
-  { ico: '🧭', t: '철저히 동네 중심', d: '유명 관광지 목록이 아니라, 출발지에서 실제로 걸어갈 수 있는 거리의 장소만 담아요.' },
-  { ico: '✨', t: 'AI가 골라주는 순서', d: '시간·동행·무드에 맞춰 들를 곳과 동선을 대신 정해드려요. 고민은 저희가.' },
-  { ico: '🔁', t: '함께 쌓이는 코스', d: '내가 만든 코스를 공유하고, 남이 만든 코스도 지도째로 가져와 그대로 걸어요.' },
+  { ico: '🧭', t: '무조건 이 근처로 (아닐수도)', d: '유명 관광지 목록이 아니라, 출발지에서 갈 수 있는 거리의 장소만 담아요.' },
+  { ico: '✨', t: 'AI가 골라주니 편하네!', d: '시간·동행·무드에 맞춰 들를 곳과 동선을 대신 정해드려요. 고민은 저희가.' },
+  { ico: '🔁', t: '내가 먼저 갔다올게~', d: '내가 만든 코스를 공유하고, 다른 사람의 계획을 내가 먼저 실행해요!' },
 ]
 
 let io = null
@@ -47,10 +47,9 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
       <header class="hero">
         <div class="wrap">
           <div class="eyebrow reveal">About · LocalHub</div>
-          <h1 class="reveal">설마 혹시...<br><span class="accent">진짜로</span>빠지실 거 아니죠?😮</h1>
+          <h1 class="reveal">설마 혹시...<br><span class="accent">진짜로</span> 빠지실 거 아니죠?😮</h1>
           <p class="lede reveal">
-            <b>싸피에서 탈출할 수 있는 유일한 방법은 취업입니다^_^</b>
-            모두 응원합니다😉😉
+            <b>싸피에서 탈출할 수 있는 유일한 방법은 취업입니다^_^</b>😉😉
           </p>
           <div class="hero-cta reveal">
             <button class="btn-solid" @click="router.push({ name: 'course' })">그럼에도 불구하고 탈출계획세우기 <span class="arrow">→</span></button>
@@ -72,16 +71,14 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
         <div class="wrap why-grid">
           <div class="why-head reveal">
             <div class="kicker">Why LocalHub</div>
-            <h2>왜 만들었냐면요</h2>
+            <h2>설마... 이미 <span class="accent">무단</span>은 아니시죠?</h2>
           </div>
           <div class="why-body reveal">
             <p>
-              점심시간, 수업 사이, 퇴근 전. 애매하게 남는 시간을 뭘 할지 검색만 하다
-              그냥 흘려보낸 적 있으시죠?
+              점심시간, 집 가기 전, 수업 사이. 지금 당장 나가고 싶은 당신을 위해 준비했어요.
             </p>
             <p>
-              역삼 근처엔 걷기 좋은 골목과 조용한 공간이 생각보다 많아요.
-              LocalHub는 <b>‘지금, 여기서, 이만큼의 시간’</b>에 딱 맞는 코스를 대신 골라,
+              LocalHub는 당신의 한계를 시험하는 <b>엄청난 코스</b>를 대신 골라,
               출발부터 마지막 장소까지 지도 위에 이어드립니다.
             </p>
           </div>
@@ -93,7 +90,7 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
         <div class="wrap">
           <div class="sec-head reveal">
             <div class="kicker">How it works</div>
-            <h2>네 번 답하면, 코스가 나와요</h2>
+            <h2><span class="accent">엄청난 코스</span>가 당신을 기다립니다!</h2>
           </div>
           <ol class="steps">
             <li v-for="(s, i) in STEPS" :key="s.n" class="step reveal" :style="{ '--i': i }">
@@ -112,7 +109,7 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
         <div class="wrap">
           <div class="sec-head reveal">
             <div class="kicker">What's different</div>
-            <h2>무엇을 다르게 했나</h2>
+            <h2>뭐가 새로운데?</h2>
           </div>
           <div class="value-grid">
             <article v-for="(v, i) in VALUES" :key="v.t" class="value-card reveal" :style="{ '--i': i }">
@@ -129,10 +126,10 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
         <div class="wrap makers-grid">
           <div class="makers-head reveal">
             <div class="kicker">The makers</div>
-            <h2>만든 사람들</h2>
+            <h2>우리가 누구?</h2>
             <p>
-              LocalHub는 SSAFY 역삼캠퍼스의 팀 프로젝트로 시작했어요.
-              매일 지나치던 동네를 조금 더 잘 걷고 싶다는 마음에서요.
+              LocalHub는 SSAFY 역삼캠퍼스의 AI온보딩 바이브코딩 팀 프로젝트로 시작했어요.
+              저희가 지금 이 곳을 나가고 싶다는건 아닙니다.
             </p>
           </div>
           <ul class="maker-list reveal">
