@@ -293,19 +293,6 @@ function initDetailMap() {
       </article>
 
       <aside class="side-card">
-        <div class="kicker">Preview</div>
-        <h3>{{ post.title }}</h3>
-
-        <div class="preview-tags">
-          <span v-if="post.time">⏱ {{ post.time }}</span>
-          <span v-if="post.district">⌖ {{ post.district }}</span>
-          <span v-if="post.companion">♙ {{ post.companion }}와 함께</span>
-        </div>
-
-        <p class="preview-content">
-          {{ post.content }}
-        </p>
-
         <div class="preview-course">
           <h4>선택한 코스</h4>
 
@@ -339,8 +326,6 @@ function initDetailMap() {
             저장된 코스 정보가 없습니다.
           </div>
         </div>
-
-        <div class="preview-help">ⓘ 미리보기는 실제 게시글과 다를 수 있습니다.</div>
       </aside>
     </div>
 
@@ -746,9 +731,9 @@ function initDetailMap() {
 }
 
 .preview-course {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #dbe2ec;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .preview-course h4 {
