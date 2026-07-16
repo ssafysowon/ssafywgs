@@ -6,9 +6,9 @@ const router = useRouter()
 
 // ── 만든 사람들: 실제 팀원 정보로 바꿔 넣으세요 ───────────────
 const MAKERS = [
-  { name: '소원', role: 'SNAKE' },
-  { name: '정슬기', role: 'DRAGON' },
-  { name: '박규은', role: 'HORSE' },
+  { name: '정슬기', role: 'DRAGON🐲' },
+  { name: '박규은', role: 'HORSE🐴' },
+  { name: '소원', role: 'SNAKE🐍' },
 ]
 
 // 코스 만들기 흐름(실제 4문항 + 결과) — 순서가 정보이므로 번호를 붙임
@@ -20,7 +20,7 @@ const STEPS = [
 ]
 
 const VALUES = [
-  { ico: '🧭', t: '무조건 이 근처로 (아닐수도)', d: '유명 관광지 목록이 아니라, 출발지에서 갈 수 있는 거리의 장소만 담아요.' },
+  { ico: '🧭', t: '무조건 이 근처로', sub: '  아닐수도...', d: '유명 관광지 목록이 아니라, 출발지에서 갈 수 있는 거리의 장소만 담아요.' },
   { ico: '✨', t: 'AI가 골라주니 편하네!', d: '시간·동행·무드에 맞춰 들를 곳과 동선을 대신 정해드려요. 고민은 저희가.' },
   { ico: '🔁', t: '내가 먼저 갔다올게~', d: '내가 만든 코스를 공유하고, 다른 사람의 계획을 내가 먼저 실행해요!' },
 ]
@@ -49,11 +49,11 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
           <div class="eyebrow reveal">About · LocalHub</div>
           <h1 class="reveal">설마 혹시...<br><span class="accent">진짜로</span> 빠지실 거 아니죠?😮</h1>
           <p class="lede reveal">
-            <b>싸피에서 탈출할 수 있는 유일한 방법은 취업입니다^_^</b>😉😉
+            <b>싸피에서 탈출할 수 있는 유일한 방법은 취업입니다</b>😉😉
           </p>
           <div class="hero-cta reveal">
             <button class="btn-solid" @click="router.push({ name: 'course' })">그럼에도 불구하고 탈출계획세우기 <span class="arrow">→</span></button>
-            <button class="btn-ghost" @click="router.push({ name: 'posts' })">다른 사람들의 탈출계획 구경하기</button>
+            <button class="btn-ghost" @click="router.push({ name: 'Posts' })">다른 사람들의 탈출계획 구경하기</button>
           </div>
 
           <!-- 지도 경로 모티프를 이어받은 라인 -->
@@ -79,7 +79,7 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
             </p>
             <p>
               LocalHub는 당신의 한계를 시험하는 <b>엄청난 코스</b>를 대신 골라,
-              출발부터 마지막 장소까지 지도 위에 이어드립니다.
+              출발부터 마지막 장소까지 <br> 지도 위에 이어드립니다.
             </p>
           </div>
         </div>
@@ -114,7 +114,10 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
           <div class="value-grid">
             <article v-for="(v, i) in VALUES" :key="v.t" class="value-card reveal" :style="{ '--i': i }">
               <span class="v-ico">{{ v.ico }}</span>
-              <h3>{{ v.t }}</h3>
+              <h3>
+                {{ v.t }}
+                <span v-if="v.sub" class="value-sub">{{ v.sub }}</span>
+              </h3>
               <p>{{ v.d }}</p>
             </article>
           </div>
@@ -286,5 +289,10 @@ h2{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.2}
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   .reveal{opacity:1;transform:none}
+}
+.value-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-60);
 }
 </style>
