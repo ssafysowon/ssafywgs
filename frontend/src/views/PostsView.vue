@@ -194,9 +194,6 @@ function mapRoutePath(post) {
           나에게 맞는 코스를 찾아보세요.
         </p>
       </div>
-      <button type="button" class="btn-solid" @click="goCreatePage">
-        코스 공유하기 <span class="arrow">→</span>
-      </button>
     </div>
 
     <section class="filter-card">
@@ -394,9 +391,11 @@ function mapRoutePath(post) {
         </div>
 
         <div class="card-footer">
-          <span>조회 <b>{{ post.views || 0 }}</b></span>
           <span>{{ post.created_at || '날짜 없음' }}</span>
-          <span>장소 <b>{{ post.place_count || post.places.length }}개</b></span>
+          <span>조회 <b>{{ post.views || 0 }}</b></span>
+          <span>
+            장소 <b>{{ getPlaceCount(post) }}개</b>
+          </span>
         </div>
       </article>
     </div>
