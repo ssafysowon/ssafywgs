@@ -170,7 +170,12 @@ function initDetailMap() {
     scrollWheelZoom: false,
   }).setView([course.start.lat, course.start.lng], 15)
 
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+  const apiKey = import.meta.env.VITE_STADIA_API_KEY
+  const tileUrl = apiKey
+    ? `https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=${apiKey}`
+    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+
+  L.tileLayer(tileUrl, {
     attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
     maxZoom: 20,
   }).addTo(map)
