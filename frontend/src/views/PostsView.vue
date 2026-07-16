@@ -391,8 +391,8 @@ function mapRoutePath(post) {
         </div>
 
         <div class="card-footer">
-          <span>조회 <b>{{ post.views || 0 }}</b></span>
           <span>{{ post.created_at || '날짜 없음' }}</span>
+          <span>조회 <b>{{ post.views || 0 }}</b></span>
           <span>
             장소 <b>{{ getPlaceCount(post) }}개</b>
           </span>
