@@ -321,17 +321,16 @@ def haversine_km(lat1, lon1, lat2, lon2):
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
     return 2 * R * math.asin(math.sqrt(a))
 
-# 보행 전제: 직선 거리 보정 + 버퍼 추가
-def estimate_travel_minutes(a_lat, a_lng, b_lat, b_lng, speed_kmh=4.5):
+def estimate_travel_minutes(a_lat, a_lng, b_lat, b_lng, speed_kmh=30):
     straight_km = haversine_km(a_lat, a_lng, b_lat, b_lng)
 
-    # 실제 보행 경로는 직선보다 길어짐
-    estimated_route_km = straight_km * 1.3
+    # 차량 경로 보정 (직선보다 길어짐)
+    estimated_route_km = straight_km * 1.25
 
     travel_minutes = estimated_route_km / speed_kmh * 60
 
-    # 신호 대기, 길 찾기 여유
-    travel_minutes += 2
+    # 신호/주차/교통 여유
+    travel_minutes += 3
 
     return max(1, int(round(travel_minutes)))
 
