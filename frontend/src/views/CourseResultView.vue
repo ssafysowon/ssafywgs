@@ -152,7 +152,7 @@ async function refineCourse (text) {
       stops: STOPS.value.map(s => ({ id: s.id, description: s.desc, stay: s.stay }))
     }
 
-    const res = await postJson('/api/course/modify', { request: text, course: coursePayload })
+    const res = await postJson('/api/course/modify', { request: text, course: coursePayload, time: answers.time })
     console.log('modify res', res)
 
     if (res.course) {
