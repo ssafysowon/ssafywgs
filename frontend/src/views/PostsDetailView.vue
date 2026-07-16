@@ -257,7 +257,9 @@ function initDetailMap() {
         <div class="meta-row">
           <span>작성일 {{ post.created_at || '날짜 없음' }}</span>
           <span>조회 {{ post.views || 0 }}</span>
-          <span>장소 {{ detailCourse.stops?.length || post.place_count || 0 }}개</span>
+          <span>
+            장소 {{ detailCourse.stops?.length ?? post.place_count ?? 0 }}개
+          </span>
         </div>
 
         <hr />
