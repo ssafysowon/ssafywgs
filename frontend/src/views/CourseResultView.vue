@@ -2,23 +2,17 @@
 import { ref, reactive, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
-
 const API_BASE_URL = 'https://ssafyescape.onrender.com'
-
 async function postJson(path, payload) {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetch(path, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8'
-    },
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
     body: JSON.stringify(payload)
   })
-
   if (!res.ok) {
     const txt = await res.text().catch(() => res.statusText)
     throw new Error(txt || res.statusText)
   }
-
   return res.json()
 }
 
@@ -218,14 +212,14 @@ function goShareToPosts() {
     path: '/posts/create',
     state: {
       prefill: {
-        title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
+        title: `싸피에서 탈출해서 ${answers.time} · ${answers.concept} 코스`,
         content: `${answers.time} 동안 ${answers.field}에서 ${answers.companion}와 함께 ${answers.concept} 코스 추천합니다.`,
         time: answers.time,
         district: answers.field,
         companion: answers.companion,
         // 게시글 작성 화면의 지도에 그대로 꽂힐 코스 데이터
         course: {
-          title: `역삼에서 ${answers.time} · ${answers.concept} 코스`,
+          title: `싸피에서 탈출해서 ${answers.time} · ${answers.concept} 코스`,
           totalTime: answers.time,
           start: { name: START.name, lat: START.lat, lng: START.lng },
           stops: STOPS.value.map(s => ({
@@ -372,9 +366,9 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
       <aside class="panel">
         <div class="panel-head">
           <div class="kicker">Your Course</div>
-          <h1>역삼 탈출 코스</h1>
+          <h1>싸피 탈출 코스</h1>
           <p>SSAFY 역삼캠퍼스에서 출발하는 {{ answers.concept }} 코스예요.</p>
-          <div class="meta"><span>총 <b>약 {{ answers.time }}</b></span><span>장소 <b>{{ STOPS.length }}곳</b></span></div>
+          <div class="meta"><span>총 <b> {{ answers.time }}</b></span><span>장소 <b>{{ STOPS.length }}곳</b></span></div>
         </div>
         <div class="cards">
           <div v-if="isLoading" class="loader">코스를 생성 중입니다…</div>
