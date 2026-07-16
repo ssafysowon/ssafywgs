@@ -244,7 +244,7 @@ onMounted(async () => {
       concept: answers.concept
     }
 
-    const res = await postJson('${API_BASE_URL}/api/course/generate', payload)
+    const res = await postJson('/api/course/generate', payload)
 
     console.log('generate res', res)
 
