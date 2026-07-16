@@ -126,9 +126,9 @@ onBeforeUnmount(() => { if (io) io.disconnect() })
         <div class="wrap makers-grid">
           <div class="makers-head reveal">
             <div class="kicker">The makers</div>
-            <h2>우리가 누구?</h2>
+            <h2>TEAM 용감한 홀스네이크</h2>
             <p>
-              LocalHub는 SSAFY 역삼캠퍼스의 AI온보딩 바이브코딩 팀 프로젝트로 시작했어요.
+              용감한 홀스네이크는 SSAFY 역삼캠퍼스 AI 온보딩 바이브코딩 과정에서 만난 팀입니다.
               저희가 지금 이 곳을 나가고 싶다는건 아닙니다.
             </p>
           </div>
