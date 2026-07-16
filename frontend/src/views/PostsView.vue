@@ -18,7 +18,7 @@ const pageSize = 6
 const loading = ref(false)
 
 const districtOptions = ['전체', '강남구', '서초구', '송파구', '강동구', '관악구']
-const companionOptions = ['전체', '혼자', '싸피 친구', '부모님', '프로님/강사님']
+const companionOptions = ['혼자', '싸피 친구', '강사님', '프로님']
 
 const sortOptions = [
   { label: '최신순', value: 'latest' },

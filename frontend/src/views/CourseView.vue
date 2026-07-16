@@ -11,10 +11,9 @@ const STEPS = [
     hint: '남은 시간에 맞춰 들를 장소 수를 정할게요.',
     placeholder: '예) 애매하게 40분쯤 비어요',
     chips: [
-      { ico: '⚡', label: '30분', value: '30분 · 가볍게 한 곳' },
-      { ico: '☕', label: '1시간', value: '1시간 · 두세 곳' },
-      { ico: '🍚', label: '2시간', value: '2시간 · 여유 코스' },
-      { ico: '🌙', label: '반나절', value: '반나절 · 제대로' }
+      { ico: '⚡', label: '1시간', value: '1~2시간 · 가볍게 한 곳' },
+      { ico: '☕', label: '3시간', value: '3~4시간 · 두세 곳' },
+      { ico: '🍚', label: '반나절', value: '5~6시간 · 여유 코스' }
     ]
   },
   {
@@ -38,8 +37,8 @@ const STEPS = [
     chips: [
       { ico: '🧍', label: '혼자', value: '혼자' },
       { ico: '💻', label: '싸피 친구', value: '싸피 친구' },
-      { ico: '👪', label: '부모님', value: '부모님' },
-      { ico: '🎓', label: '프로님/강사님', value: '프로님/강사님' }
+      { ico: '💕', label: '강사님', value: '강사님' },
+      { ico: '⭐', label: '프로님', value: '프로님' }
     ]
   },
   {
