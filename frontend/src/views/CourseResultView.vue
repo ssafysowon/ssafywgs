@@ -3,7 +3,7 @@ import { ref, reactive, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
 
-export const API_BASE_URL = 'https://ssafyescape.onrender.com'
+const API_BASE_URL = 'https://ssafyescape.onrender.com'
 
 async function postJson(path, payload) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
