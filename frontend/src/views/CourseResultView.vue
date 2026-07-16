@@ -417,7 +417,21 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 <style>
 /* body 기본 마진(브라우저 default ~8px)이 남아있으면 .page{height:100vh;overflow:hidden}이 있어도
    문서(body) 자체가 그만큼 스크롤돼버림. 전역으로 한 번만 리셋. */
-html, body{margin:0;padding:0}
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 .pin{position:relative;width:36px;height:46px;display:flex;justify-content:center;filter:drop-shadow(0 8px 10px rgba(14,16,19,.22))}
 /* 지면에 닿는 작은 그림자 점 — 핀이 떠 있는 느낌을 줌 */
@@ -457,9 +471,15 @@ html, body{margin:0;padding:0}
 
 <style scoped>
 /* CSS 변수(--route 등)는 전역 style.css의 :root 에 정의됨. 여기서 재정의하지 않는다. */
-.page{height:100vh;overflow:hidden;
-  font-family:'Pretendard','Archivo',sans-serif;color:var(--ink);background:var(--paper);
-  -webkit-font-smoothing:antialiased}
+.page {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: 'Pretendard', 'Archivo', sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
 
 /* NAV + COURSE-BAR: 함께 고정되는 헤더 스택 (다른 화면과 동일하게 fixed 유지) */
 .site-header{position:fixed;top:0;left:0;right:0;z-index:1200;background:#fff}
@@ -492,8 +512,21 @@ nav{height:56px;border-bottom:1px solid var(--line);background:#fff}
 .nbtn.primary:hover{background:var(--route);border-color:var(--route)}
 
 /* LAYOUT: --header-h는 JS에서 실제 헤더 높이를 측정해 넣어줌(하드코딩된 오프셋 제거) */
-.shell{display:grid;grid-template-columns:420px 392px 1fr;
-  height:calc(100vh - var(--header-h, 108px));margin-top:var(--header-h, 108px)}
+.shell {
+  position: fixed;
+  top: var(--header-h, 108px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: grid;
+  grid-template-columns: 420px 392px minmax(0, 1fr);
+
+  width: 100%;
+  height: auto;
+  margin: 0;
+  overflow: hidden;
+}
 
 .chat-column{padding:18px 12px;display:flex;flex-direction:column;gap:12px;min-height:0}
 .chat-column .chat-panel{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -575,15 +608,48 @@ nav{height:56px;border-bottom:1px solid var(--line);background:#fff}
 .chat-input .send:hover:not(:disabled){background:var(--route);transform:translateY(-1px)}
 .chat-input .send:disabled{background:var(--line-strong);cursor:not-allowed}
 
-@media(max-width:900px){
-  .page{height:auto;overflow:auto}
-  .shell{grid-template-columns:1fr;height:auto}
-  .map-wrap{height:64vh}
-  .panel{border-right:0;border-bottom:1px solid var(--line)}
-  .nav-tags{display:none}
-  .chat-panel{width:calc(100% - 32px);right:16px;bottom:16px}
+@media (max-width: 1100px) {
+  .shell {
+    grid-template-columns: 340px 340px minmax(0, 1fr);
+  }
+
+  .nav-tags {
+    display: none;
+  }
 }
 
 .loader { padding: 32px; text-align: center; font-weight: 700; color: var(--ink-60); }
 .empty  { padding: 24px; text-align: center; color: var(--ink-40); }
+
+.chat-column,
+.panel,
+.map-wrap {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chat-column {
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-column .chat-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-panel .chat-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
 </style>
