@@ -32,6 +32,16 @@ const router = useRouter()
 const courseTitle = ref('역삼 탈출 코스')
 const isLoading = ref(false)
 
+// 헤더 실제 높이 측정 → --header-h CSS 변수로 반영 (텍스트 줄바꿈/폰트/반응형 등으로 실제 높이가 달라져도 항상 정확히 맞음)
+const headerRef = ref(null)
+let headerObserver = null
+
+function updateHeaderHeight () {
+  if (headerRef.value) {
+    document.documentElement.style.setProperty('--header-h', `${headerRef.value.offsetHeight}px`)
+  }
+}
+
 // 이전 페이지에서 router.push({ name, state:{ answers } }) 로 넘어온 값
 const incoming = (window?.history?.state?.answers) || {}
 const answers = reactive({
@@ -227,6 +237,14 @@ function goShareToPosts() {
 }
 
 onMounted(async () => {
+  updateHeaderHeight()
+  if (headerRef.value && 'ResizeObserver' in window) {
+    headerObserver = new ResizeObserver(updateHeaderHeight)
+    headerObserver.observe(headerRef.value)
+  } else {
+    window.addEventListener('resize', updateHeaderHeight)
+  }
+
   initMap()
   isLoading.value = true
 
@@ -273,14 +291,18 @@ onMounted(async () => {
   }
 })
 
-onBeforeUnmount(() => { if (map) { map.remove(); map = null } })
+onBeforeUnmount(() => {
+  if (map) { map.remove(); map = null }
+  if (headerObserver) headerObserver.disconnect()
+  window.removeEventListener('resize', updateHeaderHeight)
+})
 
 watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 </script>
 
 <template>
   <div class="page">
-    <div class="site-header">
+    <div class="site-header" ref="headerRef">
       <nav>
         <div class="wrap nav-in">
           <a class="logo" href="#" @click.prevent="router.push({ name: 'Home' })"><span class="dot"></span>LocalHub</a>
@@ -387,6 +409,10 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
 
 <!-- 전역: Leaflet이 동적 생성하는 DOM(핀/팝업/컨트롤)은 scoped로 안 먹으므로 전역 처리 -->
 <style>
+/* body 기본 마진(브라우저 default ~8px)이 남아있으면 .page{height:100vh;overflow:hidden}이 있어도
+   문서(body) 자체가 그만큼 스크롤돼버림. 전역으로 한 번만 리셋. */
+html, body{margin:0;padding:0}
+
 .pin{position:relative;width:36px;height:46px;display:flex;justify-content:center;filter:drop-shadow(0 8px 10px rgba(14,16,19,.22))}
 /* 지면에 닿는 작은 그림자 점 — 핀이 떠 있는 느낌을 줌 */
 .pin::after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
@@ -429,11 +455,11 @@ watch(STOPS, () => drawMap())  // 코스 바뀌면 지도 다시 그림
   font-family:'Pretendard','Archivo',sans-serif;color:var(--ink);background:var(--paper);
   -webkit-font-smoothing:antialiased}
 
-/* NAV + COURSE-BAR: 함께 고정되는 헤더 스택 */
+/* NAV + COURSE-BAR: 함께 고정되는 헤더 스택 (다른 화면과 동일하게 fixed 유지) */
 .site-header{position:fixed;top:0;left:0;right:0;z-index:1200;background:#fff}
 .wrap{max-width:1240px;margin:0 auto;padding:0 32px}
-nav{height:64px;border-bottom:1px solid var(--line);background:#fff}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+nav{height:56px;border-bottom:1px solid var(--line);background:#fff}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:56px}
 .logo{display:flex;align-items:center;gap:9px;font-family:'Archivo',sans-serif;font-weight:800;
   letter-spacing:-.03em;font-size:18px;text-decoration:none;color:var(--ink)}
 .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--route);box-shadow:0 0 0 4px rgba(3,78,161,.12)}
@@ -444,10 +470,10 @@ nav{height:64px;border-bottom:1px solid var(--line);background:#fff}
 .nav-links a:hover::after,.nav-links a.here::after{width:100%}
 .nav-links a.here{color:var(--ink)}
 
-.course-bar{height:60px;border-bottom:1px solid var(--line);background:#fff}
+.course-bar{height:52px;border-bottom:1px solid var(--line);background:#fff}
 .course-bar-in{height:100%;display:flex;align-items:center;justify-content:space-between}
 .nav-tags{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
-.nav-tags .tag{display:flex;flex-direction:column;gap:1px;padding:7px 16px;position:relative}
+.nav-tags .tag{display:flex;flex-direction:column;gap:1px;padding:5px 14px;position:relative}
 .nav-tags .tag + .tag::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:1px;background:var(--line)}
 .nav-tags .tag .k{font-family:'Archivo',sans-serif;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-30);font-weight:600}
 .nav-tags .tag .v{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
@@ -459,11 +485,12 @@ nav{height:64px;border-bottom:1px solid var(--line);background:#fff}
 .nbtn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 .nbtn.primary:hover{background:var(--route);border-color:var(--route)}
 
-/* LAYOUT */
-.shell{display:grid;grid-template-columns:420px 392px 1fr;height:calc(100vh - 124px);margin-top:124px}
+/* LAYOUT: --header-h는 JS에서 실제 헤더 높이를 측정해 넣어줌(하드코딩된 오프셋 제거) */
+.shell{display:grid;grid-template-columns:420px 392px 1fr;
+  height:calc(100vh - var(--header-h, 108px));margin-top:var(--header-h, 108px)}
 
-.chat-column{padding:18px 12px;display:flex;flex-direction:column;gap:12px}
-.chat-column .chat-panel{height:calc(100vh - 64px - 36px);display:flex;flex-direction:column}
+.chat-column{padding:18px 12px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.chat-column .chat-panel{flex:1;min-height:0;display:flex;flex-direction:column}
 .chat-panel .chat-log{flex:1;overflow:auto;max-height:none;padding:12px 16px}
 
 /* LEFT */
